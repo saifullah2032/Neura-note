@@ -1,0 +1,36 @@
+type User @table {
+  displayName: String!
+  createdAt: Timestamp!
+  email: String
+  photoUrl: String
+}
+
+type Recording @table {
+  user: User!
+  title: String!
+  uploadUrl: String!
+  status: String!
+  createdAt: Timestamp!
+  category: String
+  durationSeconds: Int
+}
+
+type Summary @table {
+  recording: Recording!
+  content: String!
+  createdAt: Timestamp!
+  keywords: [String]
+}
+
+type Reminder @table {
+  user: User!
+  recording: Recording
+  summary: Summary
+  title: String!
+  reminderTime: Timestamp!
+  isCompleted: Boolean!
+  createdAt: Timestamp!
+  description: String
+  sourceType: String
+  completedAt: Timestamp
+}

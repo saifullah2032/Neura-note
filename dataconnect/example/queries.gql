@@ -1,0 +1,33 @@
+mutation CreateUser @auth(level: USER) {
+  user_insert(data: {
+    id_expr: "uuidV4()"
+    createdAt_expr: "request.time"
+    displayName: "New User"
+  })
+}
+
+query GetRemindersForUser @auth(level: USER) {
+  reminders(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    title
+    description
+    reminderTime
+    isCompleted
+  }
+}
+
+mutation UpdateReminder($id: UUID!, $isCompleted: Boolean!) @auth(level: USER) {
+  reminder_update(
+    key: {id: $id}
+    data: {isCompleted: $isCompleted}
+  )
+}
+
+query ListPublicRecordings @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  recordings {
+    id
+    title
+    category
+    durationSeconds
+  }
+}

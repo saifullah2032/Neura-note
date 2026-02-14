@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "135426504411",
+    "project_id": "neura-note",
+    "storage_bucket": "neura-note.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:135426504411:android:32a84d4f7fbc2b7730befe",
+        "android_client_info": {
+          "package_name": "com.example.neuranoteai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "135426504411-46b59n436o9t2q19ja8dnnhqhnikti90.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.neuranoteai",
+            "certificate_hash": "5ce6b383b1da71dc22db0c8476a4894753679c2f"
+          }
+        },
+        {
+          "client_id": "135426504411-a9grko80db39gjickdjgapjjujfnqr47.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMQcAOL_66sTCtxhRt1Uo4kx9ohTz8Pjc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "135426504411-a9grko80db39gjickdjgapjjujfnqr47.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "135426504411-vh7nkmjb0ilhph62v8t4j4i5tdhk2tsl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.neuranoteai"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

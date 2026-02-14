@@ -1,0 +1,80 @@
+mutation SeedData @transaction @auth(level: USER, insecureReason: "This operation is used to seed initial data and is safe for all logged in users.") {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      displayName: "Demo User 1",
+      createdAt: "2024-01-01T00:00:00Z",
+      email: "demo1@example.com",
+      photoUrl: "https://example.com/avatar1.jpg"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      displayName: "Demo User 2",
+      createdAt: "2024-01-02T00:00:00Z",
+      email: "demo2@example.com",
+      photoUrl: "https://example.com/avatar2.jpg"
+    }
+  ])
+  recording_insertMany(data: [
+    {
+      id: "650e8400-e29b-41d4-a716-446655440002",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      title: "Demo Recording 1",
+      createdAt: "2024-01-03T00:00:00Z",
+      durationSeconds: 60,
+      status: "completed",
+      category: "meeting",
+      uploadUrl: "https://example.com/recording1.mp3"
+    },
+    {
+      id: "650e8400-e29b-41d4-a716-446655440003",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      title: "Demo Recording 2",
+      createdAt: "2024-01-04T00:00:00Z",
+      durationSeconds: 120,
+      status: "completed",
+      category: "lecture",
+      uploadUrl: "https://example.com/recording2.mp3"
+    }
+  ])
+  summary_insertMany(data: [
+    {
+      id: "750e8400-e29b-41d4-a716-446655440004",
+      recordingId: "650e8400-e29b-41d4-a716-446655440002",
+      content: "Demo Summary 1 Content",
+      createdAt: "2024-01-05T00:00:00Z",
+      keywords: ["demo", "summary"]
+    },
+    {
+      id: "750e8400-e29b-41d4-a716-446655440005",
+      recordingId: "650e8400-e29b-41d4-a716-446655440003",
+      content: "Demo Summary 2 Content",
+      createdAt: "2024-01-06T00:00:00Z",
+      keywords: ["demo", "summary"]
+    }
+  ])
+  reminder_insertMany(data: [
+    {
+      id: "850e8400-e29b-41d4-a716-446655440006",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      recordingId: "650e8400-e29b-41d4-a716-446655440002",
+      title: "Demo Reminder 1",
+      description: "Demo Reminder 1 Description",
+      createdAt: "2024-01-07T00:00:00Z",
+      reminderTime: "2024-01-08T00:00:00Z",
+      isCompleted: false,
+      sourceType: "manual"
+    },
+    {
+      id: "850e8400-e29b-41d4-a716-446655440007",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      recordingId: "650e8400-e29b-41d4-a716-446655440003",
+      title: "Demo Reminder 2",
+      description: "Demo Reminder 2 Description",
+      createdAt: "2024-01-09T00:00:00Z",
+      reminderTime: "2024-01-10T00:00:00Z",
+      isCompleted: false,
+      sourceType: "manual"
+    }
+  ])
+}
