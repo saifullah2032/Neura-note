@@ -2,195 +2,206 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'constants.dart';
 
-/// App theme configuration
 class AppTheme {
   AppTheme._();
 
-  /// Light theme
+  static const Color oceanDeep = Color(0xFF006064);
+  static const Color oceanTeal = Color(0xFF00838F);
+  static const Color coralTeal = Color(0xFF4DB6AC);
+  static const Color skyBlue = Color(0xFFE1F5FE);
+  static const Color seaFoam = Color(0xFFB2DFDB);
+  static const Color oceanWhite = Color(0xFFF8F9FA);
+  static const Color deepNavy = Color(0xFF00363A);
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: _lightColorScheme,
-      textTheme: _textTheme,
-      appBarTheme: _appBarTheme,
-      elevatedButtonTheme: _elevatedButtonTheme,
-      outlinedButtonTheme: _outlinedButtonTheme,
-      textButtonTheme: _textButtonTheme,
-      inputDecorationTheme: _inputDecorationTheme,
-      cardTheme: _cardTheme,
-      floatingActionButtonTheme: _fabTheme,
-      bottomNavigationBarTheme: _bottomNavTheme,
-      snackBarTheme: _snackBarTheme,
-      dialogTheme: _dialogTheme,
-      dividerTheme: _dividerTheme,
-      scaffoldBackgroundColor: AppColors.background,
+      textTheme: _oceanTextTheme,
+      appBarTheme: _oceanAppBarTheme,
+      elevatedButtonTheme: _oceanElevatedButtonTheme,
+      outlinedButtonTheme: _oceanOutlinedButtonTheme,
+      textButtonTheme: _oceanTextButtonTheme,
+      inputDecorationTheme: _oceanInputDecorationTheme,
+      cardTheme: _oceanCardTheme,
+      floatingActionButtonTheme: _oceanFabTheme,
+      bottomNavigationBarTheme: _oceanBottomNavTheme,
+      snackBarTheme: _oceanSnackBarTheme,
+      dialogTheme: _oceanDialogTheme,
+      dividerTheme: _oceanDividerTheme,
+      scaffoldBackgroundColor: oceanWhite,
     );
   }
 
-  /// Dark theme (for future use)
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: _darkColorScheme,
-      textTheme: _textTheme,
-      scaffoldBackgroundColor: const Color(0xFF121212),
+      textTheme: _oceanTextTheme,
+      scaffoldBackgroundColor: const Color(0xFF0D1F22),
     );
   }
 
-  // Color Schemes
   static const ColorScheme _lightColorScheme = ColorScheme(
     brightness: Brightness.light,
-    primary: AppColors.primary,
-    onPrimary: AppColors.textOnPrimary,
-    primaryContainer: AppColors.primaryLight,
-    onPrimaryContainer: AppColors.textPrimary,
-    secondary: AppColors.primaryDark,
-    onSecondary: AppColors.textOnPrimary,
-    secondaryContainer: Color(0xFFB2DFDB),
-    onSecondaryContainer: AppColors.textPrimary,
-    tertiary: AppColors.voiceType,
-    onTertiary: AppColors.textOnPrimary,
-    error: AppColors.error,
-    onError: AppColors.textOnPrimary,
-    surface: AppColors.surface,
-    onSurface: AppColors.textPrimary,
-    surfaceContainerHighest: AppColors.surfaceVariant,
-    onSurfaceVariant: AppColors.textSecondary,
-    outline: AppColors.divider,
-    shadow: AppColors.shadow,
+    primary: oceanDeep,
+    onPrimary: Colors.white,
+    primaryContainer: coralTeal,
+    onPrimaryContainer: deepNavy,
+    secondary: coralTeal,
+    onSecondary: Colors.white,
+    secondaryContainer: seaFoam,
+    onSecondaryContainer: deepNavy,
+    tertiary: skyBlue,
+    onTertiary: deepNavy,
+    error: Color(0xFFE57373),
+    onError: Colors.white,
+    surface: Colors.white,
+    onSurface: deepNavy,
+    surfaceContainerHighest: oceanWhite,
+    onSurfaceVariant: Color(0xFF546E7A),
+    outline: Color(0xFFB0BEC5),
+    shadow: Color(0x33000000),
   );
 
   static const ColorScheme _darkColorScheme = ColorScheme(
     brightness: Brightness.dark,
-    primary: AppColors.primaryLight,
-    onPrimary: AppColors.textPrimary,
-    primaryContainer: AppColors.primaryDark,
-    onPrimaryContainer: AppColors.textOnPrimary,
-    secondary: AppColors.primary,
-    onSecondary: AppColors.textOnPrimary,
-    error: AppColors.error,
-    onError: AppColors.textOnPrimary,
-    surface: Color(0xFF1E1E1E),
-    onSurface: AppColors.textOnPrimary,
-    surfaceContainerHighest: Color(0xFF2C2C2C),
-    onSurfaceVariant: Color(0xFFB0B0B0),
-    outline: Color(0xFF404040),
+    primary: coralTeal,
+    onPrimary: deepNavy,
+    primaryContainer: oceanDeep,
+    onPrimaryContainer: Colors.white,
+    secondary: seaFoam,
+    onSecondary: deepNavy,
+    error: Color(0xFFEF9A9A),
+    onError: deepNavy,
+    surface: Color(0xFF0D1F22),
+    onSurface: Colors.white,
+    surfaceContainerHighest: Color(0xFF1A2F33),
+    onSurfaceVariant: Color(0xFFB0BEC5),
+    outline: Color(0xFF37474F),
     shadow: Colors.black,
   );
 
-  // Text Theme
-  static TextTheme get _textTheme {
-    return GoogleFonts.poppinsTextTheme().copyWith(
-      displayLarge: GoogleFonts.poppins(
+  static TextTheme get _oceanTextTheme {
+    return TextTheme(
+      displayLarge: GoogleFonts.syne(
+        fontSize: 57,
+        fontWeight: FontWeight.bold,
+        color: deepNavy,
+        letterSpacing: -0.25,
+      ),
+      displayMedium: GoogleFonts.syne(
+        fontSize: 45,
+        fontWeight: FontWeight.bold,
+        color: deepNavy,
+      ),
+      displaySmall: GoogleFonts.syne(
+        fontSize: 36,
+        fontWeight: FontWeight.bold,
+        color: deepNavy,
+      ),
+      headlineLarge: GoogleFonts.syne(
         fontSize: 32,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
+        fontWeight: FontWeight.w700,
+        color: deepNavy,
       ),
-      displayMedium: GoogleFonts.poppins(
+      headlineMedium: GoogleFonts.syne(
         fontSize: 28,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
+        fontWeight: FontWeight.w700,
+        color: deepNavy,
       ),
-      displaySmall: GoogleFonts.poppins(
+      headlineSmall: GoogleFonts.syne(
         fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
+        fontWeight: FontWeight.w600,
+        color: deepNavy,
       ),
-      headlineLarge: GoogleFonts.poppins(
+      titleLarge: GoogleFonts.dmSans(
         fontSize: 22,
         fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
+        color: deepNavy,
       ),
-      headlineMedium: GoogleFonts.poppins(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-      headlineSmall: GoogleFonts.poppins(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-      titleLarge: GoogleFonts.poppins(
+      titleMedium: GoogleFonts.dmSans(
         fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
+        fontWeight: FontWeight.w500,
+        color: deepNavy,
+        letterSpacing: 0.15,
       ),
-      titleMedium: GoogleFonts.poppins(
+      titleSmall: GoogleFonts.dmSans(
         fontSize: 14,
         fontWeight: FontWeight.w500,
-        color: AppColors.textPrimary,
+        color: deepNavy,
+        letterSpacing: 0.1,
       ),
-      titleSmall: GoogleFonts.poppins(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        color: AppColors.textPrimary,
-      ),
-      bodyLarge: GoogleFonts.poppins(
+      bodyLarge: GoogleFonts.dmSans(
         fontSize: 16,
         fontWeight: FontWeight.normal,
-        color: AppColors.textPrimary,
+        color: deepNavy,
+        letterSpacing: 0.5,
       ),
-      bodyMedium: GoogleFonts.poppins(
+      bodyMedium: GoogleFonts.dmSans(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        color: AppColors.textPrimary,
+        color: deepNavy,
+        letterSpacing: 0.25,
       ),
-      bodySmall: GoogleFonts.poppins(
+      bodySmall: GoogleFonts.dmSans(
         fontSize: 12,
         fontWeight: FontWeight.normal,
-        color: AppColors.textSecondary,
+        color: Color(0xFF546E7A),
+        letterSpacing: 0.4,
       ),
-      labelLarge: GoogleFonts.poppins(
+      labelLarge: GoogleFonts.dmSans(
         fontSize: 14,
         fontWeight: FontWeight.w500,
-        color: AppColors.textPrimary,
+        color: deepNavy,
+        letterSpacing: 0.1,
       ),
-      labelMedium: GoogleFonts.poppins(
+      labelMedium: GoogleFonts.dmSans(
         fontSize: 12,
         fontWeight: FontWeight.w500,
-        color: AppColors.textSecondary,
+        color: Color(0xFF546E7A),
+        letterSpacing: 0.5,
       ),
-      labelSmall: GoogleFonts.poppins(
-        fontSize: 10,
+      labelSmall: GoogleFonts.dmSans(
+        fontSize: 11,
         fontWeight: FontWeight.w500,
-        color: AppColors.textHint,
+        color: Color(0xFF78909C),
+        letterSpacing: 0.5,
       ),
     );
   }
 
-  // AppBar Theme
-  static AppBarTheme get _appBarTheme {
+  static AppBarTheme get _oceanAppBarTheme {
     return AppBarTheme(
       elevation: 0,
-      scrolledUnderElevation: 1,
-      backgroundColor: AppColors.surface,
-      foregroundColor: AppColors.textPrimary,
-      iconTheme: const IconThemeData(color: AppColors.primary),
-      titleTextStyle: GoogleFonts.poppins(
+      scrolledUnderElevation: 2,
+      backgroundColor: Colors.transparent,
+      foregroundColor: deepNavy,
+      surfaceTintColor: Colors.transparent,
+      iconTheme: const IconThemeData(color: oceanDeep),
+      titleTextStyle: GoogleFonts.syne(
         fontSize: 20,
         fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
+        color: deepNavy,
       ),
       centerTitle: false,
     );
   }
 
-  // Elevated Button Theme
-  static ElevatedButtonThemeData get _elevatedButtonTheme {
+  static ElevatedButtonThemeData get _oceanElevatedButtonTheme {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textOnPrimary,
-        elevation: 2,
-        shadowColor: AppColors.shadow,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        backgroundColor: oceanDeep,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: oceanDeep.withValues(alpha: 0.4),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConstants.buttonBorderRadius),
+          borderRadius: BorderRadius.circular(30),
         ),
-        textStyle: GoogleFonts.poppins(
+        textStyle: GoogleFonts.dmSans(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
@@ -198,17 +209,16 @@ class AppTheme {
     );
   }
 
-  // Outlined Button Theme
-  static OutlinedButtonThemeData get _outlinedButtonTheme {
+  static OutlinedButtonThemeData get _oceanOutlinedButtonTheme {
     return OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        side: const BorderSide(color: AppColors.primary, width: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        foregroundColor: oceanDeep,
+        side: BorderSide(color: oceanDeep.withValues(alpha: 0.6), width: 1.5),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConstants.buttonBorderRadius),
+          borderRadius: BorderRadius.circular(30),
         ),
-        textStyle: GoogleFonts.poppins(
+        textStyle: GoogleFonts.dmSans(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
@@ -216,155 +226,151 @@ class AppTheme {
     );
   }
 
-  // Text Button Theme
-  static TextButtonThemeData get _textButtonTheme {
+  static TextButtonThemeData get _oceanTextButtonTheme {
     return TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        textStyle: GoogleFonts.poppins(
+        foregroundColor: oceanDeep,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        textStyle: GoogleFonts.dmSans(
           fontSize: 14,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 
-  // Input Decoration Theme
-  static InputDecorationTheme get _inputDecorationTheme {
+  static InputDecorationTheme get _oceanInputDecorationTheme {
     return InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.surfaceVariant,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstants.defaultBorderRadius),
+        borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstants.defaultBorderRadius),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey.shade200),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstants.defaultBorderRadius),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: oceanDeep, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstants.defaultBorderRadius),
-        borderSide: const BorderSide(color: AppColors.error, width: 1),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFE57373), width: 1),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppConstants.defaultBorderRadius),
-        borderSide: const BorderSide(color: AppColors.error, width: 2),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFE57373), width: 2),
       ),
-      hintStyle: GoogleFonts.poppins(
-        color: AppColors.textHint,
+      hintStyle: GoogleFonts.dmSans(
+        color: Color(0xFFB0BEC5),
         fontSize: 14,
       ),
-      labelStyle: GoogleFonts.poppins(
-        color: AppColors.textSecondary,
+      labelStyle: GoogleFonts.dmSans(
+        color: Color(0xFF546E7A),
         fontSize: 14,
       ),
-      errorStyle: GoogleFonts.poppins(
-        color: AppColors.error,
+      errorStyle: GoogleFonts.dmSans(
+        color: Color(0xFFE57373),
         fontSize: 12,
       ),
     );
   }
 
-  // Card Theme
-  static CardThemeData get _cardTheme {
+  static CardThemeData get _oceanCardTheme {
     return CardThemeData(
-      elevation: 2,
-      shadowColor: AppColors.shadow,
-      color: AppColors.surface,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
+        borderRadius: BorderRadius.circular(24),
       ),
-      margin: const EdgeInsets.all(AppConstants.smallPadding),
+      margin: const EdgeInsets.all(8),
     );
   }
 
-  // FAB Theme
-  static FloatingActionButtonThemeData get _fabTheme {
+  static FloatingActionButtonThemeData get _oceanFabTheme {
     return const FloatingActionButtonThemeData(
-      backgroundColor: AppColors.primary,
-      foregroundColor: AppColors.textOnPrimary,
+      backgroundColor: oceanDeep,
+      foregroundColor: Colors.white,
       elevation: 4,
       shape: CircleBorder(),
     );
   }
 
-  // Bottom Navigation Bar Theme
-  static BottomNavigationBarThemeData get _bottomNavTheme {
+  static BottomNavigationBarThemeData get _oceanBottomNavTheme {
     return BottomNavigationBarThemeData(
-      backgroundColor: AppColors.surface,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textSecondary,
+      backgroundColor: Colors.white,
+      selectedItemColor: oceanDeep,
+      unselectedItemColor: Color(0xFF90A4AE),
       type: BottomNavigationBarType.fixed,
-      elevation: 8,
-      selectedLabelStyle: GoogleFonts.poppins(
+      elevation: 0,
+      selectedLabelStyle: GoogleFonts.dmSans(
         fontSize: 12,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
       ),
-      unselectedLabelStyle: GoogleFonts.poppins(
+      unselectedLabelStyle: GoogleFonts.dmSans(
         fontSize: 12,
         fontWeight: FontWeight.normal,
       ),
     );
   }
 
-  // SnackBar Theme
-  static SnackBarThemeData get _snackBarTheme {
+  static SnackBarThemeData get _oceanSnackBarTheme {
     return SnackBarThemeData(
-      backgroundColor: AppColors.textPrimary,
-      contentTextStyle: GoogleFonts.poppins(
-        color: AppColors.textOnPrimary,
+      backgroundColor: deepNavy,
+      contentTextStyle: GoogleFonts.dmSans(
+        color: Colors.white,
         fontSize: 14,
       ),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppConstants.defaultBorderRadius),
+        borderRadius: BorderRadius.circular(16),
       ),
     );
   }
 
-  // Dialog Theme
-  static DialogThemeData get _dialogTheme {
+  static DialogThemeData get _oceanDialogTheme {
     return DialogThemeData(
-      backgroundColor: AppColors.surface,
+      backgroundColor: Colors.white,
       elevation: 8,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
+        borderRadius: BorderRadius.circular(24),
       ),
-      titleTextStyle: GoogleFonts.poppins(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
+      titleTextStyle: GoogleFonts.syne(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: deepNavy,
       ),
-      contentTextStyle: GoogleFonts.poppins(
+      contentTextStyle: GoogleFonts.dmSans(
         fontSize: 14,
-        color: AppColors.textSecondary,
+        color: Color(0xFF546E7A),
       ),
     );
   }
 
-  // Divider Theme
-  static DividerThemeData get _dividerTheme {
+  static DividerThemeData get _oceanDividerTheme {
     return const DividerThemeData(
-      color: AppColors.divider,
+      color: Color(0xFFECEFF1),
       thickness: 1,
       space: 1,
     );
   }
 }
 
-/// Extension for easy color access
-extension ThemeExtensions on BuildContext {
+extension OceanThemeExtensions on BuildContext {
   ColorScheme get colorScheme => Theme.of(this).colorScheme;
   TextTheme get textTheme => Theme.of(this).textTheme;
   
-  // Quick access to common colors
   Color get primaryColor => colorScheme.primary;
   Color get backgroundColor => colorScheme.surface;
   Color get errorColor => colorScheme.error;
+
+  static const Color oceanDeep = AppTheme.oceanDeep;
+  static const Color coralTeal = AppTheme.coralTeal;
+  static const Color skyBlue = AppTheme.skyBlue;
+  static const Color seaFoam = AppTheme.seaFoam;
+  static const Color oceanWhite = AppTheme.oceanWhite;
 }
