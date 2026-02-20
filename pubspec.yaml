@@ -46,6 +46,7 @@ dependencies:
   path: ^1.9.0
   http: ^1.2.2
   crypto: ^3.0.3
+  flutter_dotenv: ^5.2.1
 
   # Image & Media
   image_picker: ^1.1.2
@@ -76,6 +77,7 @@ flutter:
     - assets/animations/loading-lg.riv
     - assets/animations/elk.riv
     - assets/animations/voice.riv
+    - .env
   fonts:
     - family: ClashDisplay
       fonts:

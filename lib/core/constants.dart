@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// App-wide constants
 class AppConstants {
   AppConstants._();
+
+  static Future<void> loadEnv() async {
+    await dotenv.load(fileName: ".env");
+  }
 
   // App Info
   static const String appName = 'NeuraNote AI';
@@ -104,21 +109,15 @@ class AppConstants {
   static const String permissionErrorMessage = 'Permission denied. Please grant the required permissions.';
 
   // API Keys Configuration
-  // Hardcoded API keys - can be overridden via --dart-define flags
-  static const String groqApiKey = String.fromEnvironment(
-    'GROQ_API_KEY',
-    defaultValue: '',
-  );
-  static const String huggingFaceApiKey = String.fromEnvironment(
-    'HUGGINGFACE_API_KEY',
-    defaultValue: '',
-  );
-  static const String googleMapsApiKey = String.fromEnvironment('GOOGLE_MAPS_API_KEY', defaultValue: '');
+  // Loaded from .env file
+  static String get groqApiKey => dotenv.env['GROQ_API_KEY'] ?? '';
+  static String get huggingFaceApiKey => dotenv.env['HUGGINGFACE_API_KEY'] ?? '';
+  static String get googleMapsApiKey => dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
 
   // Cloudinary Configuration
-  static const String cloudinaryCloudName = '';
-  static const String cloudinaryApiKey = '';
-  static const String cloudinaryApiSecret = '';
+  static String get cloudinaryCloudName => dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? '';
+  static String get cloudinaryApiKey => dotenv.env['CLOUDINARY_API_KEY'] ?? '';
+  static String get cloudinaryApiSecret => dotenv.env['CLOUDINARY_API_SECRET'] ?? '';
 
   // AI Service Base URLs
   static const String groqBaseUrl = 'https://api.groq.com/openai/v1';
