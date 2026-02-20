@@ -1,233 +1,114 @@
-/// Environment configuration for NeuraNote AI
-///
-/// This file provides a centralized place for all API keys and configuration.
-/// For production, use environment variables or a secure secrets manager.
-///
-/// IMPORTANT: Never commit actual API keys to version control!
-/// Use --dart-define or environment variables for sensitive values.
 library;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:neuranotteai/core/constants.dart';
 
-/// Environment configuration singleton
 class EnvConfig {
   EnvConfig._();
 
   static final EnvConfig _instance = EnvConfig._();
   static EnvConfig get instance => _instance;
 
-  // ============================================================
-  // API Keys - Use --dart-define for production
-  // Example: flutter run --dart-define=GROQ_API_KEY=your_key
-  // ============================================================
-
-  /// Google Maps API Key for geocoding
-  /// Set via: --dart-define=GOOGLE_MAPS_API_KEY=your_key
-  /// Falls back to hardcoded value in AppConstants if not set
   String get googleMapsApiKey {
-    const key = String.fromEnvironment(
-      'GOOGLE_MAPS_API_KEY',
-      defaultValue: AppConstants.googleMapsApiKey,
-    );
+    final key = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
     if (key.isEmpty && kDebugMode) {
       debugPrint('WARNING: GOOGLE_MAPS_API_KEY not set. Geocoding will not work.');
     }
     return key;
   }
 
-  /// Google OAuth Client ID for Calendar integration
-  /// Set via: --dart-define=GOOGLE_CLIENT_ID=your_client_id
   String get googleClientId {
-    const clientId = String.fromEnvironment(
-      'GOOGLE_CLIENT_ID',
-      defaultValue: '',
-    );
-    return clientId;
+    return dotenv.env['GOOGLE_CLIENT_ID'] ?? '';
   }
 
-  /// Groq API Key for Whisper audio transcription
-  /// Set via: --dart-define=GROQ_API_KEY=your_key
-  /// Falls back to hardcoded value in AppConstants if not set
   String get groqApiKey {
-    const key = String.fromEnvironment(
-      'GROQ_API_KEY',
-      defaultValue: AppConstants.groqApiKey,
-    );
+    final key = dotenv.env['GROQ_API_KEY'] ?? AppConstants.groqApiKey;
     if (key.isEmpty && kDebugMode) {
-      debugPrint('WARNING: GROQ_API_KEY not set. Using fallback or audio transcription will not work.');
+      debugPrint('WARNING: GROQ_API_KEY not set. Audio transcription will not work.');
     }
     return key;
   }
 
-  /// Hugging Face API Key for image analysis
-  /// Set via: --dart-define=HUGGINGFACE_API_KEY=your_key
-  /// Falls back to hardcoded value in AppConstants if not set
   String get huggingFaceApiKey {
-    const key = String.fromEnvironment(
-      'HUGGINGFACE_API_KEY',
-      defaultValue: AppConstants.huggingFaceApiKey,
-    );
+    final key = dotenv.env['HUGGINGFACE_API_KEY'] ?? AppConstants.huggingFaceApiKey;
     if (key.isEmpty && kDebugMode) {
-      debugPrint('WARNING: HUGGINGFACE_API_KEY not set. Using fallback or image analysis will not work.');
+      debugPrint('WARNING: HUGGINGFACE_API_KEY not set. Image analysis will not work.');
     }
     return key;
   }
 
-  // ============================================================
-  // Feature Flags
-  // ============================================================
-
-  /// Enable debug logging
   bool get enableDebugLogging {
-    const enabled = bool.fromEnvironment(
-      'ENABLE_DEBUG_LOGGING',
-      defaultValue: kDebugMode,
-    );
-    return enabled;
+    final enabled = dotenv.env['ENABLE_DEBUG_LOGGING'] ?? kDebugMode.toString();
+    return enabled == 'true';
   }
 
-  /// Enable mock services for testing
   bool get useMockServices {
-    const mock = bool.fromEnvironment(
-      'USE_MOCK_SERVICES',
-      defaultValue: false,
-    );
-    return mock;
+    final mock = dotenv.env['USE_MOCK_SERVICES'] ?? 'false';
+    return mock == 'true';
   }
 
-  /// Enable analytics
   bool get enableAnalytics {
-    const enabled = bool.fromEnvironment(
-      'ENABLE_ANALYTICS',
-      defaultValue: !kDebugMode,
-    );
-    return enabled;
+    final enabled = dotenv.env['ENABLE_ANALYTICS'] ?? (!kDebugMode).toString();
+    return enabled == 'true';
   }
 
-  // ============================================================
-  // Service Endpoints
-  // ============================================================
-
-  /// Google Maps Geocoding API base URL
   String get geocodingBaseUrl {
-    const url = String.fromEnvironment(
-      'GEOCODING_BASE_URL',
-      defaultValue: 'https://maps.googleapis.com/maps/api/geocode',
-    );
-    return url;
+    return dotenv.env['GEOCODING_BASE_URL'] ?? 'https://maps.googleapis.com/maps/api/geocode';
   }
 
-  /// Groq API base URL
   String get groqBaseUrl {
-    const url = String.fromEnvironment(
-      'GROQ_BASE_URL',
-      defaultValue: 'https://api.groq.com/openai/v1',
-    );
-    return url;
+    return dotenv.env['GROQ_BASE_URL'] ?? AppConstants.groqBaseUrl;
   }
 
-  /// Hugging Face API base URL
   String get huggingFaceBaseUrl {
-    const url = String.fromEnvironment(
-      'HUGGINGFACE_BASE_URL',
-      defaultValue: 'https://router.huggingface.co',
-    );
-    return url;
+    return dotenv.env['HUGGINGFACE_BASE_URL'] ?? AppConstants.huggingFaceBaseUrl;
   }
 
-  // ============================================================
-  // App Configuration
-  // ============================================================
-
-  /// Default geofence radius in meters
   double get defaultGeofenceRadius {
-    const radius = int.fromEnvironment(
-      'DEFAULT_GEOFENCE_RADIUS',
-      defaultValue: 200,
-    );
-    return radius.toDouble();
+    final radius = dotenv.env['DEFAULT_GEOFENCE_RADIUS'] ?? '200';
+    return double.tryParse(radius) ?? 200.0;
   }
 
-  /// Minimum geofence radius in meters
   double get minGeofenceRadius {
-    const radius = int.fromEnvironment(
-      'MIN_GEOFENCE_RADIUS',
-      defaultValue: 50,
-    );
-    return radius.toDouble();
+    final radius = dotenv.env['MIN_GEOFENCE_RADIUS'] ?? '50';
+    return double.tryParse(radius) ?? 50.0;
   }
 
-  /// Maximum geofence radius in meters
   double get maxGeofenceRadius {
-    const radius = int.fromEnvironment(
-      'MAX_GEOFENCE_RADIUS',
-      defaultValue: 1000,
-    );
-    return radius.toDouble();
+    final radius = dotenv.env['MAX_GEOFENCE_RADIUS'] ?? '1000';
+    return double.tryParse(radius) ?? 1000.0;
   }
 
-  /// Default calendar reminder minutes before event
   int get defaultReminderMinutesBefore {
-    const minutes = int.fromEnvironment(
-      'DEFAULT_REMINDER_MINUTES',
-      defaultValue: 15,
-    );
-    return minutes;
+    final minutes = dotenv.env['DEFAULT_REMINDER_MINUTES'] ?? '15';
+    return int.tryParse(minutes) ?? 15;
   }
 
-  /// Maximum file size for uploads (in bytes)
   int get maxUploadFileSize {
-    const size = int.fromEnvironment(
-      'MAX_UPLOAD_FILE_SIZE',
-      defaultValue: 10 * 1024 * 1024, // 10 MB
-    );
-    return size;
+    final size = dotenv.env['MAX_UPLOAD_FILE_SIZE'] ?? (10 * 1024 * 1024).toString();
+    return int.tryParse(size) ?? 10485760;
   }
 
-  /// Maximum audio recording duration (in seconds)
   int get maxRecordingDuration {
-    const duration = int.fromEnvironment(
-      'MAX_RECORDING_DURATION',
-      defaultValue: 300, // 5 minutes
-    );
-    return duration;
+    final duration = dotenv.env['MAX_RECORDING_DURATION'] ?? '300';
+    return int.tryParse(duration) ?? 300;
   }
 
-  // ============================================================
-  // AI Model Configuration
-  // ============================================================
-
-  /// Groq Whisper model to use
   String get groqWhisperModel {
-    const model = String.fromEnvironment(
-      'GROQ_WHISPER_MODEL',
-      defaultValue: AppConstants.groqWhisperModel,
-    );
-    return model;
+    return dotenv.env['GROQ_WHISPER_MODEL'] ?? AppConstants.groqWhisperModel;
   }
 
-  /// Hugging Face model for image captioning/analysis
   String get huggingFaceImageModel {
-    const model = String.fromEnvironment(
-      'HUGGINGFACE_IMAGE_MODEL',
-      defaultValue: AppConstants.huggingFaceImageModel,
-    );
-    return model;
+    return dotenv.env['HUGGINGFACE_IMAGE_MODEL'] ?? AppConstants.huggingFaceImageModel;
   }
 
-  // ============================================================
-  // Validation
-  // ============================================================
-
-  /// Check if all required API keys are configured
   bool get isFullyConfigured {
     return googleMapsApiKey.isNotEmpty &&
            groqApiKey.isNotEmpty &&
            huggingFaceApiKey.isNotEmpty;
   }
 
-  /// Get list of missing configuration items
   List<String> get missingConfiguration {
     final missing = <String>[];
     if (googleMapsApiKey.isEmpty) missing.add('GOOGLE_MAPS_API_KEY');
@@ -236,7 +117,6 @@ class EnvConfig {
     return missing;
   }
 
-  /// Print configuration status (debug only)
   void printConfigStatus() {
     if (!kDebugMode) return;
 
@@ -258,5 +138,4 @@ class EnvConfig {
   }
 }
 
-/// Convenience getter for EnvConfig
 EnvConfig get envConfig => EnvConfig.instance;

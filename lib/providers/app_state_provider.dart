@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Application-wide state provider
@@ -266,10 +265,5 @@ class AppStateProvider extends ChangeNotifier {
   void completeInitialization() {
     _isInitializing = false;
     notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }

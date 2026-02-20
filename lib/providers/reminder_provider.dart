@@ -28,6 +28,8 @@ class ReminderProvider extends ChangeNotifier {
   String? _errorMessage;
   String? _userId;
   bool _isBackgroundServiceRunning = false;
+
+  String? get userId => _userId;
   StreamSubscription<List<ReminderModel>>? _remindersSubscription;
   StreamSubscription<ReminderModel>? _reminderCreatedSubscription;
   StreamSubscription<ReminderModel>? _reminderTriggeredSubscription;

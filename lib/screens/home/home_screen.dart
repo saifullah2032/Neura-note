@@ -1,22 +1,14 @@
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../model/summary_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reminder_provider.dart';
 import '../../providers/summary_provider.dart';
 import 'widgets/summary_card.dart';
 import '../widgets/ocean_animations.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/reminder_provider.dart';
-import '../../providers/summary_provider.dart';
-import 'widgets/summary_card.dart';
-import '../widgets/ocean_animations.dart';
-import '../../model/summary_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
