@@ -21,6 +21,7 @@ import '../../services/summarization_orchestrator.dart';
 import '../widgets/entity_chip.dart';
 import '../widgets/location_picker.dart';
 import '../widgets/ocean_animations.dart';
+import '../widgets/ocean_ui_components.dart';
 
 class SummarizeScreen extends StatefulWidget {
   const SummarizeScreen({super.key});

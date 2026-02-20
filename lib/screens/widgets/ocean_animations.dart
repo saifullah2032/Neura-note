@@ -387,6 +387,173 @@ class _PulsingOceanButtonState extends State<PulsingOceanButton>
   }
 }
 
+class CustomBeachWave extends StatefulWidget {
+  final double height;
+  final Color? primaryColor;
+  final Color? secondaryColor;
+  
+  const CustomBeachWave({
+    super.key,
+    this.height = 220,
+    this.primaryColor,
+    this.secondaryColor,
+  });
+
+  @override
+  State<CustomBeachWave> createState() => _CustomBeachWaveState();
+}
+
+class _CustomBeachWaveState extends State<CustomBeachWave>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = widget.primaryColor ?? const Color(0xFF006064);
+    final secondaryColor = widget.secondaryColor ?? const Color(0xFF4DB6AC);
+    
+    return SizedBox(
+      height: widget.height,
+      width: double.infinity,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          return CustomPaint(
+            painter: _BeachWavePainter(
+              animation: _controller.value,
+              primaryColor: primaryColor,
+              secondaryColor: secondaryColor,
+            ),
+            size: Size.infinite,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _BeachWavePainter extends CustomPainter {
+  final double animation;
+  final Color primaryColor;
+  final Color secondaryColor;
+
+  _BeachWavePainter({
+    required this.animation,
+    required this.primaryColor,
+    required this.secondaryColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _drawDeepWave(canvas, size);
+    _drawMiddleWave(canvas, size);
+    _drawSurfaceWave(canvas, size);
+    _drawFoam(canvas, size);
+  }
+
+  void _drawDeepWave(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = primaryColor.withValues(alpha: 0.6)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    path.moveTo(0, size.height);
+    
+    for (double x = 0; x <= size.width; x += 1) {
+      final y = sin((x * 0.01) + (animation * 2 * pi)) * 15 +
+          sin((x * 0.02) + (animation * 2 * pi * 1.3)) * 8;
+      path.lineTo(x, size.height - 40 + y);
+    }
+    
+    path.lineTo(size.width, size.height);
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawMiddleWave(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = primaryColor.withValues(alpha: 0.4)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    path.moveTo(0, size.height);
+    
+    for (double x = 0; x <= size.width; x += 1) {
+      final y = sin((x * 0.015) + (animation * 2 * pi * 0.8) + pi / 4) * 12 +
+          sin((x * 0.025) + (animation * 2 * pi)) * 6;
+      path.lineTo(x, size.height - 70 + y);
+    }
+    
+    path.lineTo(size.width, size.height);
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawSurfaceWave(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          secondaryColor.withValues(alpha: 0.5),
+          secondaryColor.withValues(alpha: 0.3),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    final path = Path();
+    path.moveTo(0, size.height);
+    
+    for (double x = 0; x <= size.width; x += 1) {
+      final y = sin((x * 0.02) + (animation * 2 * pi * 1.2)) * 10 +
+          sin((x * 0.035) + (animation * 2 * pi * 0.7)) * 5;
+      path.lineTo(x, size.height - 100 + y);
+    }
+    
+    path.lineTo(size.width, size.height);
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawFoam(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.25)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    path.moveTo(0, size.height);
+    
+    for (double x = 0; x <= size.width; x += 1) {
+      final y = sin((x * 0.025) + (animation * 2 * pi * 1.5) + pi / 2) * 8 +
+          sin((x * 0.05) + (animation * 2 * pi)) * 3;
+      path.lineTo(x, size.height - 115 + y);
+    }
+    
+    path.lineTo(size.width, size.height);
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BeachWavePainter oldDelegate) {
+    return oldDelegate.animation != animation;
+  }
+}
+
 class ShimmerEffect extends StatefulWidget {
   final Widget child;
   final Color? baseColor;

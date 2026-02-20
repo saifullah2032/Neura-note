@@ -113,16 +113,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             bottom: 0,
             left: 0,
             right: 0,
-            child: SizedBox(
-              height: 220,
-              width: double.infinity,
-              child: Transform.rotate(
-                angle: -3.14159,
-                child: rive.RiveAnimation.asset(
-                  'assets/animations/beach_wave.riv',
-                  fit: BoxFit.cover,
-                ),
-              ),
+            child: const CustomBeachWave(
+              height: 200,
+              primaryColor: Color(0xFF006064),
+              secondaryColor: Color(0xFF4DB6AC),
             ),
           ),
           FadeTransition(
@@ -133,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 60),
+                    const SizedBox(height: 40),
                     SizedBox(
                       height: 160,
                       width: 160,

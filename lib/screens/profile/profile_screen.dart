@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/token_provider.dart';
 import '../widgets/ocean_animations.dart';
+import '../widgets/ocean_ui_components.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
