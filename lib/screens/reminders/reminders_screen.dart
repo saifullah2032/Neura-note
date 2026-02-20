@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../model/reminder_model.dart';
 import '../../providers/reminder_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../widgets/ocean_animations.dart';
 
 class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
@@ -48,13 +49,17 @@ class _RemindersScreenState extends State<RemindersScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _offWhite,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildTabBar(),
-            Expanded(child: _buildTabContent()),
-          ],
+      body: OceanBackground(
+        primaryColor: _teal,
+        waveHeight: 80,
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              _buildTabBar(),
+              Expanded(child: _buildTabContent()),
+            ],
+          ),
         ),
       ),
       floatingActionButton: _buildFAB(),

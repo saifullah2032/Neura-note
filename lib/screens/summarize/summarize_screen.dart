@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -13,9 +13,14 @@ import '../../model/summary_model.dart';
 import '../../model/reminder_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reminder_provider.dart';
+import '../../providers/summary_provider.dart';
+import '../../repo/summary_repo.dart';
+import '../../services/audio_service.dart';
+import '../../services/speech_to_text_service.dart';
 import '../../services/summarization_orchestrator.dart';
 import '../widgets/entity_chip.dart';
 import '../widgets/location_picker.dart';
+import '../widgets/ocean_animations.dart';
 
 class SummarizeScreen extends StatefulWidget {
   const SummarizeScreen({super.key});
@@ -28,6 +33,9 @@ class _SummarizeScreenState extends State<SummarizeScreen>
     with SingleTickerProviderStateMixin {
   final Color _offWhite = const Color(0xFFF8F9FA);
   final Color _teal = Colors.teal;
+  
+  // Audio service for recording
+  late AudioService _audioService;
   
   // Input state
   File? _selectedImage;
@@ -55,6 +63,7 @@ class _SummarizeScreenState extends State<SummarizeScreen>
   @override
   void initState() {
     super.initState();
+    _audioService = AudioService();
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -62,11 +71,42 @@ class _SummarizeScreenState extends State<SummarizeScreen>
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+    
+    // Load existing summary if coming from home screen tap
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadExistingSummary();
+    });
+  }
+
+  void _loadExistingSummary() {
+    final summaryProvider = context.read<SummaryProvider>();
+    final currentSummary = summaryProvider.currentSummary;
+    debugPrint('Checking for existing summary: $currentSummary');
+    if (currentSummary != null) {
+      // Convert SummaryModel to SummarizationPipelineResult
+      _result = SummarizationPipelineResult(
+        summaryId: currentSummary.id,
+        type: currentSummary.type,
+        originalContentUrl: currentSummary.originalContentUrl,
+        summary: currentSummary.summarizedText,
+        thumbnailUrl: currentSummary.thumbnailUrl,
+        transcript: currentSummary.rawTranscript,
+        dateTimes: currentSummary.extractedDateTimes,
+        locations: currentSummary.extractedLocations,
+        tokensUsed: currentSummary.tokensCost,
+        confidenceScore: currentSummary.confidenceScore ?? 1.0,
+        processingTime: Duration.zero,
+        metadata: currentSummary.metadata,
+      );
+      setState(() {});
+      debugPrint('Loaded existing summary: ${_result!.summary.substring(0, 50)}...');
+    }
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _audioService.dispose();
     super.dispose();
   }
 
@@ -74,18 +114,22 @@ class _SummarizeScreenState extends State<SummarizeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _offWhite,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: _isProcessing
-                  ? _buildProcessingView()
-                  : _result != null
-                      ? _buildResultView()
-                      : _buildInputView(),
-            ),
-          ],
+      body: OceanBackground(
+        primaryColor: _teal,
+        waveHeight: 80,
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: _isProcessing
+                    ? _buildProcessingView()
+                    : _result != null
+                        ? _buildResultView()
+                        : _buildInputView(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -781,6 +825,9 @@ class _SummarizeScreenState extends State<SummarizeScreen>
   Future<void> _processImage() async {
     if (_selectedImage == null) return;
     
+    debugPrint('Processing image: ${_selectedImage!.path}');
+    debugPrint('HuggingFace API Key: ${envConfig.huggingFaceApiKey.isNotEmpty ? "SET" : "NOT SET"}');
+    
     setState(() {
       _isProcessing = true;
       _errorMessage = null;
@@ -790,15 +837,19 @@ class _SummarizeScreenState extends State<SummarizeScreen>
       // Use environment config for API keys
       final orchestrator = SummarizationOrchestrator(
         config: SummarizationConfig(
-          geminiApiKey: envConfig.geminiApiKey,
           googleMapsApiKey: envConfig.googleMapsApiKey,
+          groqApiKey: envConfig.groqApiKey,
+          huggingFaceApiKey: envConfig.huggingFaceApiKey,
+          speechProvider: SpeechToTextProvider.whisper,
         ),
       );
 
+      debugPrint('Starting image summarization...');
       final result = await orchestrator.summarizeImage(
         filePath: _selectedImage!.path,
         userId: context.read<AuthProvider>().userId,
         onProgress: (stage, progress, message) {
+          debugPrint('Stage: $stage, Progress: $progress, Message: $message');
           setState(() {
             _currentStage = stage;
             _progress = progress;
@@ -806,17 +857,16 @@ class _SummarizeScreenState extends State<SummarizeScreen>
           });
         },
       );
+      
+      debugPrint('Image summarization complete. Result: ${result.summary.substring(0, result.summary.length > 100 ? 100 : result.summary.length)}...');
 
       setState(() {
         _result = result;
         _isProcessing = false;
       });
-    } catch (e) {
-      // Log the full error for debugging
+    } catch (e, stackTrace) {
       debugPrint('Image summarization error: $e');
-      if (e is SummarizationException) {
-        debugPrint('Original error: ${e.originalError}');
-      }
+      debugPrint('Stack trace: $stackTrace');
       setState(() {
         _isProcessing = false;
         _errorMessage = e.toString();
@@ -836,34 +886,67 @@ class _SummarizeScreenState extends State<SummarizeScreen>
     }
   }
 
-  void _startRecording() {
-    // TODO: Implement actual audio recording using audio_service
-    setState(() {
-      _isRecording = true;
-      _errorMessage = null;
-    });
-    _pulseController.repeat(reverse: true);
-    
-    // Mock: Stop after 10 seconds
-    Future.delayed(const Duration(seconds: 10), () {
-      if (_isRecording) {
-        _stopRecording();
+  void _startRecording() async {
+    try {
+      // Check permission
+      final hasPermission = await _audioService.hasPermission();
+      if (!hasPermission) {
+        setState(() {
+          _errorMessage = 'Microphone permission denied';
+        });
+        return;
       }
-    });
+      
+      // Start recording
+      await _audioService.startRecording();
+      
+      setState(() {
+        _isRecording = true;
+        _errorMessage = null;
+      });
+      _pulseController.repeat(reverse: true);
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to start recording: $e';
+      });
+    }
   }
 
-  void _stopRecording() {
-    _pulseController.stop();
-    _pulseController.reset();
-    setState(() {
-      _isRecording = false;
-      // TODO: Set actual recorded audio file
-      _recordedAudio = File('/mock/audio.wav'); // Placeholder
-    });
+  void _stopRecording() async {
+    try {
+      // Stop recording and get the file
+      final audioFile = await _audioService.stopRecording();
+      
+      _pulseController.stop();
+      _pulseController.reset();
+      
+      if (audioFile != null) {
+        setState(() {
+          _isRecording = false;
+          _recordedAudio = audioFile;
+        });
+      } else {
+        setState(() {
+          _isRecording = false;
+          _errorMessage = 'Recording failed - no audio file created';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isRecording = false;
+        _errorMessage = 'Failed to stop recording: $e';
+      });
+    }
   }
 
   Future<void> _processAudio() async {
-    if (_recordedAudio == null) return;
+    if (_recordedAudio == null) {
+      debugPrint('No audio file recorded');
+      _showError('No audio file recorded');
+      return;
+    }
+    
+    debugPrint('Processing audio file: ${_recordedAudio!.path}');
     
     setState(() {
       _isProcessing = true;
@@ -872,17 +955,23 @@ class _SummarizeScreenState extends State<SummarizeScreen>
 
     try {
       // Use environment config for API keys
+      debugPrint('Groq API Key: ${envConfig.groqApiKey.isNotEmpty ? "SET" : "NOT SET"}');
+      
       final orchestrator = SummarizationOrchestrator(
         config: SummarizationConfig(
-          geminiApiKey: envConfig.geminiApiKey,
           googleMapsApiKey: envConfig.googleMapsApiKey,
+          groqApiKey: envConfig.groqApiKey,
+          huggingFaceApiKey: envConfig.huggingFaceApiKey,
+          speechProvider: SpeechToTextProvider.whisper,
         ),
       );
 
+      debugPrint('Starting audio summarization...');
       final result = await orchestrator.summarizeAudio(
         filePath: _recordedAudio!.path,
         userId: context.read<AuthProvider>().userId,
         onProgress: (stage, progress, message) {
+          debugPrint('Stage: $stage, Progress: $progress, Message: $message');
           setState(() {
             _currentStage = stage;
             _progress = progress;
@@ -890,12 +979,16 @@ class _SummarizeScreenState extends State<SummarizeScreen>
           });
         },
       );
+      
+      debugPrint('Audio summarization complete. Result: ${result.summary.substring(0, result.summary.length > 100 ? 100 : result.summary.length)}...');
 
       setState(() {
         _result = result;
         _isProcessing = false;
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Audio processing error: $e');
+      debugPrint('Stack trace: $stackTrace');
       setState(() {
         _isProcessing = false;
         _errorMessage = e.toString();
@@ -1077,21 +1170,91 @@ class _SummarizeScreenState extends State<SummarizeScreen>
   }
 
   Future<void> _saveSummary() async {
-    if (_result == null) return;
+    if (_result == null) {
+      _showError('No summary to save');
+      return;
+    }
 
-    // TODO: Save summary to repository
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 8),
-            Text('Summary saved', style: GoogleFonts.poppins()),
-          ],
+    try {
+      // Get the user ID
+      final userId = context.read<AuthProvider>().userId;
+      if (userId == null) {
+        _showError('Please sign in to save');
+        return;
+      }
+
+      debugPrint('Saving summary for user: $userId');
+
+      // Show saving indicator
+      setState(() {
+        _isProcessing = true;
+      });
+
+      // Use SummaryRepository to save directly
+      final summaryRepo = SummaryRepository();
+      final savedSummary = await summaryRepo.createSummary(
+        userId: userId,
+        type: _result!.type,
+        originalContentUrl: _result!.originalContentUrl,
+        summarizedText: _result!.summary,
+        thumbnailUrl: _result!.thumbnailUrl,
+        rawTranscript: _result!.transcript,
+        extractedDateTimes: _result!.dateTimes,
+        extractedLocations: _result!.locations,
+        tokensCost: _result!.tokensUsed,
+        confidenceScore: _result!.confidenceScore,
+        metadata: _result!.metadata,
+      );
+
+      debugPrint('Summary saved with ID: ${savedSummary.id}');
+
+      setState(() {
+        _isProcessing = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 8),
+                Text('Summary saved successfully!', style: GoogleFonts.poppins()),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        
+        // Redirect to home after successful save
+        context.goNamed('home');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Save error: $e');
+      debugPrint('Stack trace: $stackTrace');
+      setState(() {
+        _isProcessing = false;
+      });
+      _showError('Failed to save: $e');
+    }
+  }
+
+  void _showError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text(message, style: GoogleFonts.poppins())),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
         ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+      );
+    }
   }
 }

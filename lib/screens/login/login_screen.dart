@@ -5,6 +5,8 @@ import 'package:rive/rive.dart' as rive;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../widgets/ocean_animations.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
   @override
@@ -94,7 +96,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           // Foreground UI
           Center(
-            child: Column(
+            child: FloatingElement(
+              floatDistance: 8,
+              child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Stack(
@@ -213,6 +217,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontSize: 14, color: Colors.black38),
                 ),
               ],
+            ),
             ),
           ),
         ],

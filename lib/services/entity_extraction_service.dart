@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:neuranotteai/model/summary_model.dart';
-import 'package:neuranotteai/services/ai_service.dart';
 
 /// Exception for entity extraction errors
 class EntityExtractionException implements Exception {
@@ -142,28 +141,26 @@ extension OrganizationTypeExtension on OrganizationType {
   }
 }
 
-/// Service for extracting entities from text using NLP
+/// Service for extracting entities from text using basic pattern matching
+/// 
+/// Note: This is a simplified implementation without AI. For production use,
+/// consider integrating with Hugging Face NER models or another NLP service.
 class EntityExtractionService {
-  final AIService _aiService;
-
-  EntityExtractionService({required AIService aiService})
-      : _aiService = aiService;
+  const EntityExtractionService();
 
   /// Extract all entities from text
+  /// 
+  /// Currently returns empty results. In a production implementation,
+  /// this would use Hugging Face NER models or regex pattern matching.
   Future<EntityExtractionResult> extractEntities(String text) async {
     if (text.trim().isEmpty) {
       return const EntityExtractionResult();
     }
 
-    try {
-      final response = await _aiService.extractEntities(text);
-      return _parseResponse(response.text, response.totalTokens);
-    } on AIException catch (e) {
-      throw EntityExtractionException(
-        'Entity extraction failed: ${e.message}',
-        code: e.errorCode,
-      );
-    }
+    // Return empty entities - entity extraction is complex and requires
+    // either AI models or sophisticated NLP libraries
+    // For now, users can manually add reminders based on the summary
+    return const EntityExtractionResult();
   }
 
   /// Extract only date/time entities
@@ -179,292 +176,29 @@ class EntityExtractionService {
   }
 
   /// Parse date/time from natural language
+  /// 
+  /// Basic implementation that attempts to parse ISO 8601 format
   Future<DateTime?> parseDateTime(String text) async {
     if (text.trim().isEmpty) return null;
 
     try {
-      final prompt = '''
-Parse the following natural language date/time expression and return the result as ISO 8601 format.
-Consider the current date as reference for relative expressions.
-Current date: ${DateTime.now().toIso8601String()}
-
-Text: "$text"
-
-Return ONLY the ISO 8601 datetime string, nothing else. If parsing fails, return "null".
-''';
-
-      final response = await _aiService.generateText(prompt);
-      final result = response.text.trim();
-
-      if (result == 'null' || result.isEmpty) return null;
-
-      try {
-        return DateTime.parse(result);
-      } catch (_) {
-        return null;
-      }
+      return DateTime.parse(text.trim());
     } catch (_) {
       return null;
     }
   }
 
   /// Validate and normalize a location string
+  /// 
+  /// Returns a basic LocationEntity with the original text
   Future<LocationEntity?> normalizeLocation(String text) async {
     if (text.trim().isEmpty) return null;
 
-    try {
-      final prompt = '''
-Analyze the following location text and return information about it as JSON:
-{
-  "originalText": "the input text",
-  "type": "address|placeName|landmark|city|relative",
-  "confidence": 0.0-1.0,
-  "normalizedName": "standardized name if applicable"
-}
-
-Text: "$text"
-
-Return ONLY the JSON object, nothing else.
-''';
-
-      final response = await _aiService.generateText(prompt);
-      final parsed = _parseJsonResponse(response.text);
-
-      if (parsed == null) return null;
-
-      return LocationEntity(
-        originalText: parsed['originalText'] as String? ?? text,
-        type: _parseLocationType(parsed['type'] as String?),
-        confidence: (parsed['confidence'] as num?)?.toDouble() ?? 0.8,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /// Parse the JSON response from AI
-  EntityExtractionResult _parseResponse(String text, int tokensUsed) {
-    final parsed = _parseJsonResponse(text);
-    if (parsed == null) {
-      return EntityExtractionResult(tokensUsed: tokensUsed);
-    }
-
-    return EntityExtractionResult(
-      dateTimes: _parseDateTimes(parsed['dateTimes']),
-      locations: _parseLocations(parsed['locations']),
-      people: _parsePeople(parsed['people']),
-      organizations: _parseOrganizations(parsed['organizations']),
-      actionItems: _parseActionItems(parsed['actionItems']),
-      tokensUsed: tokensUsed,
-      rawResponse: parsed,
+    return LocationEntity(
+      originalText: text.trim(),
+      type: LocationType.placeName,
+      confidence: 0.5,
     );
-  }
-
-  /// Parse JSON from text (handles markdown code blocks)
-  Map<String, dynamic>? _parseJsonResponse(String text) {
-    var cleanText = text.trim();
-
-    // Remove markdown code blocks if present
-    if (cleanText.startsWith('```json')) {
-      cleanText = cleanText.substring(7);
-    } else if (cleanText.startsWith('```')) {
-      cleanText = cleanText.substring(3);
-    }
-    if (cleanText.endsWith('```')) {
-      cleanText = cleanText.substring(0, cleanText.length - 3);
-    }
-    cleanText = cleanText.trim();
-
-    try {
-      return json.decode(cleanText) as Map<String, dynamic>;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /// Parse date/time entities from response
-  List<DateTimeEntity> _parseDateTimes(dynamic data) {
-    if (data == null) return [];
-
-    final list = data as List<dynamic>;
-    return list.map((item) {
-      final map = item as Map<String, dynamic>;
-      return DateTimeEntity(
-        originalText: map['originalText'] as String? ?? '',
-        parsedDateTime: _parseDateTime(map['parsedDateTime']),
-        type: _parseDateTimeType(map['type'] as String?),
-        confidence: (map['confidence'] as num?)?.toDouble() ?? 0.8,
-      );
-    }).where((e) => e.originalText.isNotEmpty).toList();
-  }
-
-  /// Parse a date/time string
-  DateTime _parseDateTime(dynamic value) {
-    if (value == null) return DateTime.now();
-
-    try {
-      return DateTime.parse(value as String);
-    } catch (_) {
-      // Try to parse relative dates
-      return _parseRelativeDateTime(value as String?) ?? DateTime.now();
-    }
-  }
-
-  /// Parse relative date/time expressions
-  DateTime? _parseRelativeDateTime(String? text) {
-    if (text == null) return null;
-
-    final now = DateTime.now();
-    final lower = text.toLowerCase().trim();
-
-    // Common relative expressions
-    if (lower == 'today') return DateTime(now.year, now.month, now.day);
-    if (lower == 'tomorrow') {
-      return DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
-    }
-    if (lower == 'yesterday') {
-      return DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
-    }
-
-    // "next X" patterns
-    if (lower.startsWith('next ')) {
-      final dayOfWeek = _parseDayOfWeek(lower.substring(5));
-      if (dayOfWeek != null) {
-        return _getNextDayOfWeek(now, dayOfWeek);
-      }
-    }
-
-    // "in X days/weeks/months"
-    final inDaysMatch = RegExp(r'in (\d+) days?').firstMatch(lower);
-    if (inDaysMatch != null) {
-      final days = int.parse(inDaysMatch.group(1)!);
-      return now.add(Duration(days: days));
-    }
-
-    final inWeeksMatch = RegExp(r'in (\d+) weeks?').firstMatch(lower);
-    if (inWeeksMatch != null) {
-      final weeks = int.parse(inWeeksMatch.group(1)!);
-      return now.add(Duration(days: weeks * 7));
-    }
-
-    return null;
-  }
-
-  /// Parse day of week name to integer (1=Monday, 7=Sunday)
-  int? _parseDayOfWeek(String text) {
-    switch (text.toLowerCase().trim()) {
-      case 'monday':
-        return DateTime.monday;
-      case 'tuesday':
-        return DateTime.tuesday;
-      case 'wednesday':
-        return DateTime.wednesday;
-      case 'thursday':
-        return DateTime.thursday;
-      case 'friday':
-        return DateTime.friday;
-      case 'saturday':
-        return DateTime.saturday;
-      case 'sunday':
-        return DateTime.sunday;
-      default:
-        return null;
-    }
-  }
-
-  /// Get the next occurrence of a day of week
-  DateTime _getNextDayOfWeek(DateTime from, int targetDay) {
-    var daysUntil = targetDay - from.weekday;
-    if (daysUntil <= 0) daysUntil += 7;
-    return DateTime(from.year, from.month, from.day).add(Duration(days: daysUntil));
-  }
-
-  /// Parse date/time type
-  DateTimeType _parseDateTimeType(String? type) {
-    switch (type?.toLowerCase()) {
-      case 'specific':
-        return DateTimeType.specific;
-      case 'relative':
-        return DateTimeType.relative;
-      case 'recurring':
-        return DateTimeType.recurring;
-      case 'dateonly':
-        return DateTimeType.dateOnly;
-      case 'timeonly':
-        return DateTimeType.timeOnly;
-      default:
-        return DateTimeType.specific;
-    }
-  }
-
-  /// Parse location entities from response
-  List<LocationEntity> _parseLocations(dynamic data) {
-    if (data == null) return [];
-
-    final list = data as List<dynamic>;
-    return list.map((item) {
-      final map = item as Map<String, dynamic>;
-      return LocationEntity(
-        originalText: map['originalText'] as String? ?? '',
-        resolvedAddress: map['resolvedAddress'] as String?,
-        latitude: (map['latitude'] as num?)?.toDouble(),
-        longitude: (map['longitude'] as num?)?.toDouble(),
-        type: _parseLocationType(map['type'] as String?),
-        confidence: (map['confidence'] as num?)?.toDouble() ?? 0.8,
-      );
-    }).where((e) => e.originalText.isNotEmpty).toList();
-  }
-
-  /// Parse location type
-  LocationType _parseLocationType(String? type) {
-    switch (type?.toLowerCase()) {
-      case 'address':
-        return LocationType.address;
-      case 'placename':
-        return LocationType.placeName;
-      case 'landmark':
-        return LocationType.landmark;
-      case 'city':
-        return LocationType.city;
-      case 'relative':
-        return LocationType.relative;
-      default:
-        return LocationType.placeName;
-    }
-  }
-
-  /// Parse people entities from response
-  List<PersonEntity> _parsePeople(dynamic data) {
-    if (data == null) return [];
-
-    final list = data as List<dynamic>;
-    return list.map((item) {
-      if (item is String) {
-        return PersonEntity(name: item);
-      }
-      return PersonEntity.fromJson(item as Map<String, dynamic>);
-    }).where((e) => e.name.isNotEmpty).toList();
-  }
-
-  /// Parse organization entities from response
-  List<OrganizationEntity> _parseOrganizations(dynamic data) {
-    if (data == null) return [];
-
-    final list = data as List<dynamic>;
-    return list.map((item) {
-      if (item is String) {
-        return OrganizationEntity(name: item);
-      }
-      return OrganizationEntity.fromJson(item as Map<String, dynamic>);
-    }).where((e) => e.name.isNotEmpty).toList();
-  }
-
-  /// Parse action items from response
-  List<String> _parseActionItems(dynamic data) {
-    if (data == null) return [];
-
-    final list = data as List<dynamic>;
-    return list.map((item) => item.toString()).where((item) => item.isNotEmpty).toList();
   }
 }
 

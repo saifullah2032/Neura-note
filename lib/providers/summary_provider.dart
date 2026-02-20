@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/summary_model.dart';
 import '../repo/summary_repo.dart';
 
@@ -73,13 +74,20 @@ class SummaryProvider extends ChangeNotifier {
       _setState(SummaryState.loading);
       _clearError();
 
+      debugPrint('SummaryProvider: Loading summaries for user: $userId');
+      
       _summaries = await _summaryRepository.getSummariesByUserId(
         userId,
         limit: limit,
       );
       
+      debugPrint('SummaryProvider: Loaded ${_summaries.length} summaries');
+      
       _setState(SummaryState.loaded);
-    } catch (e) {
+      notifyListeners();
+    } catch (e, stack) {
+      debugPrint('SummaryProvider: Error loading summaries: $e');
+      debugPrint('Stack: $stack');
       _setError(e.toString());
     }
   }

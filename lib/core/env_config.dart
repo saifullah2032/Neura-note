@@ -8,6 +8,7 @@
 library;
 
 import 'package:flutter/foundation.dart';
+import 'package:neuranotteai/core/constants.dart';
 
 /// Environment configuration singleton
 class EnvConfig {
@@ -18,28 +19,16 @@ class EnvConfig {
 
   // ============================================================
   // API Keys - Use --dart-define for production
-  // Example: flutter run --dart-define=GEMINI_API_KEY=your_key
+  // Example: flutter run --dart-define=GROQ_API_KEY=your_key
   // ============================================================
-
-  /// Google Gemini API Key for AI summarization
-  /// Set via: --dart-define=GEMINI_API_KEY=your_key
-  String get geminiApiKey {
-    const key = String.fromEnvironment(
-      'GEMINI_API_KEY',
-      defaultValue: '',
-    );
-    if (key.isEmpty && kDebugMode) {
-      debugPrint('WARNING: GEMINI_API_KEY not set. AI features will not work.');
-    }
-    return key;
-  }
 
   /// Google Maps API Key for geocoding
   /// Set via: --dart-define=GOOGLE_MAPS_API_KEY=your_key
+  /// Falls back to hardcoded value in AppConstants if not set
   String get googleMapsApiKey {
     const key = String.fromEnvironment(
       'GOOGLE_MAPS_API_KEY',
-      defaultValue: '',
+      defaultValue: AppConstants.googleMapsApiKey,
     );
     if (key.isEmpty && kDebugMode) {
       debugPrint('WARNING: GOOGLE_MAPS_API_KEY not set. Geocoding will not work.');
@@ -55,6 +44,34 @@ class EnvConfig {
       defaultValue: '',
     );
     return clientId;
+  }
+
+  /// Groq API Key for Whisper audio transcription
+  /// Set via: --dart-define=GROQ_API_KEY=your_key
+  /// Falls back to hardcoded value in AppConstants if not set
+  String get groqApiKey {
+    const key = String.fromEnvironment(
+      'GROQ_API_KEY',
+      defaultValue: AppConstants.groqApiKey,
+    );
+    if (key.isEmpty && kDebugMode) {
+      debugPrint('WARNING: GROQ_API_KEY not set. Using fallback or audio transcription will not work.');
+    }
+    return key;
+  }
+
+  /// Hugging Face API Key for image analysis
+  /// Set via: --dart-define=HUGGINGFACE_API_KEY=your_key
+  /// Falls back to hardcoded value in AppConstants if not set
+  String get huggingFaceApiKey {
+    const key = String.fromEnvironment(
+      'HUGGINGFACE_API_KEY',
+      defaultValue: AppConstants.huggingFaceApiKey,
+    );
+    if (key.isEmpty && kDebugMode) {
+      debugPrint('WARNING: HUGGINGFACE_API_KEY not set. Using fallback or image analysis will not work.');
+    }
+    return key;
   }
 
   // ============================================================
@@ -92,20 +109,29 @@ class EnvConfig {
   // Service Endpoints
   // ============================================================
 
-  /// Gemini API base URL
-  String get geminiBaseUrl {
-    const url = String.fromEnvironment(
-      'GEMINI_BASE_URL',
-      defaultValue: 'https://generativelanguage.googleapis.com/v1beta',
-    );
-    return url;
-  }
-
   /// Google Maps Geocoding API base URL
   String get geocodingBaseUrl {
     const url = String.fromEnvironment(
       'GEOCODING_BASE_URL',
       defaultValue: 'https://maps.googleapis.com/maps/api/geocode',
+    );
+    return url;
+  }
+
+  /// Groq API base URL
+  String get groqBaseUrl {
+    const url = String.fromEnvironment(
+      'GROQ_BASE_URL',
+      defaultValue: 'https://api.groq.com/openai/v1',
+    );
+    return url;
+  }
+
+  /// Hugging Face API base URL
+  String get huggingFaceBaseUrl {
+    const url = String.fromEnvironment(
+      'HUGGINGFACE_BASE_URL',
+      defaultValue: 'https://router.huggingface.co',
     );
     return url;
   }
@@ -169,19 +195,44 @@ class EnvConfig {
   }
 
   // ============================================================
+  // AI Model Configuration
+  // ============================================================
+
+  /// Groq Whisper model to use
+  String get groqWhisperModel {
+    const model = String.fromEnvironment(
+      'GROQ_WHISPER_MODEL',
+      defaultValue: AppConstants.groqWhisperModel,
+    );
+    return model;
+  }
+
+  /// Hugging Face model for image captioning/analysis
+  String get huggingFaceImageModel {
+    const model = String.fromEnvironment(
+      'HUGGINGFACE_IMAGE_MODEL',
+      defaultValue: AppConstants.huggingFaceImageModel,
+    );
+    return model;
+  }
+
+  // ============================================================
   // Validation
   // ============================================================
 
   /// Check if all required API keys are configured
   bool get isFullyConfigured {
-    return geminiApiKey.isNotEmpty && googleMapsApiKey.isNotEmpty;
+    return googleMapsApiKey.isNotEmpty &&
+           groqApiKey.isNotEmpty &&
+           huggingFaceApiKey.isNotEmpty;
   }
 
   /// Get list of missing configuration items
   List<String> get missingConfiguration {
     final missing = <String>[];
-    if (geminiApiKey.isEmpty) missing.add('GEMINI_API_KEY');
     if (googleMapsApiKey.isEmpty) missing.add('GOOGLE_MAPS_API_KEY');
+    if (groqApiKey.isEmpty) missing.add('GROQ_API_KEY');
+    if (huggingFaceApiKey.isEmpty) missing.add('HUGGINGFACE_API_KEY');
     return missing;
   }
 
@@ -190,9 +241,12 @@ class EnvConfig {
     if (!kDebugMode) return;
 
     debugPrint('=== EnvConfig Status ===');
-    debugPrint('Gemini API Key: ${geminiApiKey.isNotEmpty ? "SET" : "NOT SET"}');
     debugPrint('Google Maps API Key: ${googleMapsApiKey.isNotEmpty ? "SET" : "NOT SET"}');
     debugPrint('Google Client ID: ${googleClientId.isNotEmpty ? "SET" : "NOT SET"}');
+    debugPrint('Groq API Key: ${groqApiKey.isNotEmpty ? "SET" : "NOT SET"}');
+    debugPrint('Hugging Face API Key: ${huggingFaceApiKey.isNotEmpty ? "SET" : "NOT SET"}');
+    debugPrint('Groq Whisper Model: $groqWhisperModel');
+    debugPrint('Hugging Face Image Model: $huggingFaceImageModel');
     debugPrint('Debug Logging: $enableDebugLogging');
     debugPrint('Mock Services: $useMockServices');
     debugPrint('Analytics: $enableAnalytics');

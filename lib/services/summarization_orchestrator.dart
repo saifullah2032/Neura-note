@@ -2,9 +2,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:neuranotteai/model/summary_model.dart';
-import 'package:neuranotteai/services/ai_service.dart';
 import 'package:neuranotteai/services/entity_extraction_service.dart';
 import 'package:neuranotteai/services/geocoding_service.dart';
+import 'package:neuranotteai/services/hugging_face_service.dart';
 import 'package:neuranotteai/services/image_summarization_service.dart';
 import 'package:neuranotteai/services/speech_to_text_service.dart';
 import 'package:neuranotteai/services/storage_service.dart';
@@ -28,18 +28,18 @@ class SummarizationException implements Exception {
 
 /// Configuration for the summarization orchestrator
 class SummarizationConfig {
-  final String geminiApiKey;
   final String googleMapsApiKey;
-  final String? speechToTextApiKey;
+  final String? groqApiKey;
+  final String? huggingFaceApiKey;
   final SpeechToTextProvider speechProvider;
   final bool autoResolveLocations;
   final Duration timeout;
 
   const SummarizationConfig({
-    required this.geminiApiKey,
     required this.googleMapsApiKey,
-    this.speechToTextApiKey,
-    this.speechProvider = SpeechToTextProvider.gemini,
+    this.groqApiKey,
+    this.huggingFaceApiKey,
+    this.speechProvider = SpeechToTextProvider.whisper,
     this.autoResolveLocations = true,
     this.timeout = const Duration(minutes: 2),
   });
@@ -148,10 +148,9 @@ class SummarizationPipelineResult {
 
 /// Orchestrates the complete summarization pipeline
 class SummarizationOrchestrator {
-  final AIService _aiService;
-  final ImageSummarizationService _imageSummarizationService;
-  final SpeechToTextService _speechToTextService;
-  final AudioSummarizationService _audioSummarizationService;
+  late final ImageSummarizationService _imageSummarizationService;
+  late final SpeechToTextService _speechToTextService;
+  late final AudioSummarizationService _audioSummarizationService;
   final EntityExtractionService _entityExtractionService;
   final GeocodingService _geocodingService;
   final StorageService? _storageService;
@@ -163,39 +162,39 @@ class SummarizationOrchestrator {
     StorageService? storageService,
   })  : _config = config,
         _storageService = storageService,
-        _aiService = AIService(
-          config: AIConfig.geminiVision(apiKey: config.geminiApiKey),
-        ),
-        _imageSummarizationService = ImageSummarizationService(
-          aiService: AIService(
-            config: AIConfig.geminiVision(apiKey: config.geminiApiKey),
-          ),
-        ),
-        _speechToTextService = SpeechToTextService(
-          config: SpeechToTextConfig(
-            apiKey: config.speechToTextApiKey ?? config.geminiApiKey,
-            provider: config.speechProvider,
-          ),
-        ),
-        _audioSummarizationService = AudioSummarizationService(
-          sttService: SpeechToTextService(
-            config: SpeechToTextConfig(
-              apiKey: config.speechToTextApiKey ?? config.geminiApiKey,
-              provider: config.speechProvider,
-            ),
-          ),
-          aiService: AIService(
-            config: AIConfig.summarization(apiKey: config.geminiApiKey),
-          ),
-        ),
-        _entityExtractionService = EntityExtractionService(
-          aiService: AIService(
-            config: AIConfig.summarization(apiKey: config.geminiApiKey),
-          ),
-        ),
+        _entityExtractionService = const EntityExtractionService(),
         _geocodingService = GeocodingService(
           config: GeocodingConfig(apiKey: config.googleMapsApiKey),
-        );
+        ) {
+    // Initialize services that require API keys conditionally
+    if (config.huggingFaceApiKey != null) {
+      _imageSummarizationService = ImageSummarizationService(
+        huggingFaceService: HuggingFaceService(
+          config: HuggingFaceConfig(
+            apiKey: config.huggingFaceApiKey!,
+          ),
+        ),
+      );
+    } else {
+      throw ArgumentError('Hugging Face API key is required for image summarization');
+    }
+
+    _speechToTextService = SpeechToTextService(
+      config: SpeechToTextConfig(
+        apiKey: config.groqApiKey ?? '',
+        provider: config.speechProvider,
+      ),
+    );
+
+    _audioSummarizationService = AudioSummarizationService(
+      sttService: SpeechToTextService(
+        config: SpeechToTextConfig(
+          apiKey: config.groqApiKey ?? '',
+          provider: config.speechProvider,
+        ),
+      ),
+    );
+  }
 
   /// Summarize an image from file path
   Future<SummarizationPipelineResult> summarizeImage({
@@ -465,22 +464,16 @@ class SummarizationOrchestrator {
     try {
       onProgress?.call(SummarizationStage.analyzing, 0.2, 'Analyzing text...');
 
-      // Summarize the text
-      final summaryResponse = await _aiService.summarizeText(text);
+      // Create a simple text summary using basic truncation
+      final summary = _createTextSummary(text);
 
       onProgress?.call(SummarizationStage.extractingEntities, 0.5, 'Extracting entities...');
 
-      // Extract entities
+      // Extract entities (now returns empty)
       final entityResult = await _entityExtractionService.extractEntities(text);
 
       // Resolve locations if enabled
-      var locations = entityResult.locations
-          .map((e) => LocationEntity(
-                originalText: e.originalText,
-                type: e.type,
-                confidence: e.confidence,
-              ))
-          .toList();
+      var locations = entityResult.locations;
 
       if (_config.autoResolveLocations && locations.isNotEmpty) {
         onProgress?.call(SummarizationStage.resolvingLocations, 0.8, 'Resolving locations...');
@@ -495,11 +488,11 @@ class SummarizationOrchestrator {
         summaryId: _uuid.v4(),
         type: SummaryType.image, // Could add a 'text' type
         originalContentUrl: '',
-        summary: summaryResponse.text,
+        summary: summary,
         dateTimes: entityResult.dateTimes,
         locations: locations,
         actionItems: entityResult.actionItems,
-        tokensUsed: summaryResponse.totalTokens + entityResult.tokensUsed,
+        tokensUsed: 0,
         confidenceScore: 0.9,
         processingTime: stopwatch.elapsed,
       );
@@ -511,6 +504,29 @@ class SummarizationOrchestrator {
         originalError: e,
       );
     }
+  }
+
+  /// Create a simple text summary by extracting key sentences
+  String _createTextSummary(String text) {
+    if (text.length <= 200) return text;
+
+    // Split into sentences
+    final sentences = text.split(RegExp(r'[.!?]+\s+'));
+    if (sentences.length <= 3) return text;
+
+    // Take first sentence and last sentence, plus key middle sentences
+    final summarySentences = <String>[];
+    summarySentences.add(sentences.first.trim());
+
+    // Add middle sentences if text is long
+    if (sentences.length > 5) {
+      final middleIndex = sentences.length ~/ 2;
+      summarySentences.add(sentences[middleIndex].trim());
+    }
+
+    summarySentences.add(sentences.last.trim());
+
+    return summarySentences.join('. ') + '.';
   }
 
   /// Extract entities from text only (no summarization)
@@ -525,33 +541,32 @@ class SummarizationOrchestrator {
 
   /// Dispose of resources
   void dispose() {
-    _aiService.dispose();
     _geocodingService.dispose();
   }
 }
 
 /// Builder for creating SummarizationOrchestrator with fluent API
 class SummarizationOrchestratorBuilder {
-  String? _geminiApiKey;
   String? _googleMapsApiKey;
-  String? _speechToTextApiKey;
-  SpeechToTextProvider _speechProvider = SpeechToTextProvider.gemini;
+  String? _groqApiKey;
+  String? _huggingFaceApiKey;
+  SpeechToTextProvider _speechProvider = SpeechToTextProvider.whisper;
   bool _autoResolveLocations = true;
   Duration _timeout = const Duration(minutes: 2);
   StorageService? _storageService;
-
-  SummarizationOrchestratorBuilder withGeminiApiKey(String apiKey) {
-    _geminiApiKey = apiKey;
-    return this;
-  }
 
   SummarizationOrchestratorBuilder withGoogleMapsApiKey(String apiKey) {
     _googleMapsApiKey = apiKey;
     return this;
   }
 
-  SummarizationOrchestratorBuilder withSpeechToTextApiKey(String apiKey) {
-    _speechToTextApiKey = apiKey;
+  SummarizationOrchestratorBuilder withGroqApiKey(String apiKey) {
+    _groqApiKey = apiKey;
+    return this;
+  }
+
+  SummarizationOrchestratorBuilder withHuggingFaceApiKey(String apiKey) {
+    _huggingFaceApiKey = apiKey;
     return this;
   }
 
@@ -576,18 +591,19 @@ class SummarizationOrchestratorBuilder {
   }
 
   SummarizationOrchestrator build() {
-    if (_geminiApiKey == null) {
-      throw ArgumentError('Gemini API key is required');
-    }
     if (_googleMapsApiKey == null) {
       throw ArgumentError('Google Maps API key is required');
     }
 
+    if (_huggingFaceApiKey == null) {
+      throw ArgumentError('Hugging Face API key is required for image summarization');
+    }
+
     return SummarizationOrchestrator(
       config: SummarizationConfig(
-        geminiApiKey: _geminiApiKey!,
         googleMapsApiKey: _googleMapsApiKey!,
-        speechToTextApiKey: _speechToTextApiKey,
+        groqApiKey: _groqApiKey,
+        huggingFaceApiKey: _huggingFaceApiKey,
         speechProvider: _speechProvider,
         autoResolveLocations: _autoResolveLocations,
         timeout: _timeout,

@@ -3,7 +3,25 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+/// @deprecated
+/// This file is deprecated and no longer used. 
+/// 
+/// The app has been migrated to use:
+/// - Groq (Whisper) for audio transcription
+/// - Hugging Face for image analysis and text processing
+/// 
+/// This file is kept for reference only and will be removed in a future version.
+/// 
+/// To migrate existing code:
+/// - Replace AIService usage with HuggingFaceService for image/text analysis
+/// - Use SpeechToTextService with Whisper provider for transcription
+/// 
+/// See:
+/// - lib/services/hugging_face_service.dart
+/// - lib/services/speech_to_text_service.dart
+
 /// Exception thrown when AI operations fail
+@Deprecated('Use service-specific exceptions instead')
 class AIException implements Exception {
   final String message;
   final String? errorCode;
@@ -16,6 +34,7 @@ class AIException implements Exception {
 }
 
 /// Configuration for AI service
+@Deprecated('Use HuggingFaceConfig instead')
 class AIConfig {
   final String apiKey;
   final String model;
@@ -53,9 +72,10 @@ class AIConfig {
 }
 
 /// Response from AI generation
+@Deprecated('Not used anymore')
 class AIGenerationResponse {
   final String text;
-  final String? reasoning; // New field for internal thoughts/logic
+  final String? reasoning;
   final int promptTokens;
   final int completionTokens;
   final String? finishReason;
@@ -72,11 +92,13 @@ class AIGenerationResponse {
 
   int get totalTokens => promptTokens + completionTokens;
 
-  /// Helper to parse JSON text directly from response
   Map<String, dynamic> toMap() => json.decode(text);
 }
 
 /// Service for AI-powered operations using Google Gemini API
+/// 
+/// @deprecated This service is deprecated. Use HuggingFaceService instead.
+@Deprecated('Use HuggingFaceService for image/text analysis. This class will be removed in a future version.')
 class AIService {
   final HttpClient _client;
   final AIConfig _config;
@@ -84,242 +106,62 @@ class AIService {
   static const String _baseUrl = 'generativelanguage.googleapis.com';
   static const String _apiVersion = 'v1';
 
+  @Deprecated('Use HuggingFaceService instead')
   AIService({required AIConfig config, HttpClient? client})
     : _config = config,
       _client = client ?? HttpClient() {
     _client.connectionTimeout = _config.timeout;
   }
 
-  /// Generate text completion from a prompt
+  @Deprecated('Use HuggingFaceService.analyzeImage() instead')
   Future<AIGenerationResponse> generateText(
     String prompt, {
     bool forceJson = false,
   }) async {
-    final effectivePrompt = forceJson
-        ? '$prompt\n\nReturn ONLY a valid JSON object. No conversation, no markdown backticks.'
-        : prompt;
-
-    final requestBody = {
-      'contents': [
-        {
-          'parts': [
-            {'text': effectivePrompt},
-          ],
-        },
-      ],
-      'generationConfig': {
-        'temperature': _config.temperature,
-        'maxOutputTokens': _config.maxTokens,
-        'topP': 0.95,
-        'topK': 40,
-      },
-      'safetySettings': [
-        {
-          'category': 'HARM_CATEGORY_HARASSMENT',
-          'threshold': 'BLOCK_MEDIUM_AND_ABOVE',
-        },
-        {
-          'category': 'HARM_CATEGORY_HATE_SPEECH',
-          'threshold': 'BLOCK_MEDIUM_AND_ABOVE',
-        },
-        {
-          'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-          'threshold': 'BLOCK_MEDIUM_AND_ABOVE',
-        },
-        {
-          'category': 'HARM_CATEGORY_DANGEROUS_CONTENT',
-          'threshold': 'BLOCK_MEDIUM_AND_ABOVE',
-        },
-      ],
-    };
-
-    return _makeRequest(requestBody);
+    throw UnimplementedError('AIService is deprecated. Use HuggingFaceService instead.');
   }
 
-  /// Generate response from an image with optional prompt
+  @Deprecated('Use HuggingFaceService.analyzeImage() instead')
   Future<AIGenerationResponse> analyzeImage({
     required Uint8List imageBytes,
     required String mimeType,
     String prompt = 'Analyze this image and provide a detailed summary.',
     bool forceJson = false,
   }) async {
-    final base64Image = base64Encode(imageBytes);
-    final finalPrompt = forceJson
-        ? '$prompt\n\nReturn ONLY a valid JSON object.'
-        : prompt;
-
-    final requestBody = {
-      'contents': [
-        {
-          'parts': [
-            {'text': finalPrompt},
-            {
-              'inlineData': {'mimeType': mimeType, 'data': base64Image},
-            },
-          ],
-        },
-      ],
-      'generationConfig': {
-        'temperature': _config.temperature,
-        'maxOutputTokens': _config.maxTokens,
-      },
-    };
-
-    return _makeRequest(requestBody);
+    throw UnimplementedError('AIService is deprecated. Use HuggingFaceService instead.');
   }
 
+  @Deprecated('Use HuggingFaceService.analyzeImage() instead')
   Future<AIGenerationResponse> analyzeImageFile({
     required String filePath,
     String prompt = 'Analyze this image and provide a detailed summary.',
   }) async {
-    final file = File(filePath);
-    if (!await file.exists()) {
-      throw AIException('Image file not found: $filePath');
-    }
-    final bytes = await file.readAsBytes();
-    final mimeType = _getMimeType(filePath);
-    return analyzeImage(imageBytes: bytes, mimeType: mimeType, prompt: prompt);
+    throw UnimplementedError('AIService is deprecated. Use HuggingFaceService instead.');
   }
 
+  @Deprecated('Text summarization is not supported in the new architecture')
   Future<AIGenerationResponse> summarizeText(String text) async {
-    final prompt = 'Summarize this text concisely: $text';
-    return generateText(prompt);
+    throw UnimplementedError('AIService is deprecated.');
   }
 
+  @Deprecated('Use EntityExtractionService instead')
   Future<AIGenerationResponse> extractEntities(String text) async {
-    final prompt = 'Extract dates, locations, and organizations as JSON: $text';
-    return generateText(prompt, forceJson: true);
+    throw UnimplementedError('AIService is deprecated. Use EntityExtractionService instead.');
   }
 
+  @Deprecated('Use HuggingFaceService instead')
   Future<AIGenerationResponse> summarizeImageWithEntities({
     required Uint8List imageBytes,
     required String mimeType,
   }) async {
-    const prompt =
-        'Analyze this image and extract summary, dates, and action items as JSON.';
-    return analyzeImage(
-      imageBytes: imageBytes,
-      mimeType: mimeType,
-      prompt: prompt,
-      forceJson: true,
-    );
+    throw UnimplementedError('AIService is deprecated. Use HuggingFaceService instead.');
   }
 
+  @Deprecated('Use AudioSummarizationService instead')
   Future<AIGenerationResponse> summarizeTranscriptWithEntities(
     String transcript,
   ) async {
-    final prompt =
-        '''
-Analyze this transcript and provide a summary, entities, and action items as JSON.
-Transcript: $transcript
-
-Structure:
-{
-  "summary": "string",
-  "dateTimes": [{"originalText": "string", "type": "string"}],
-  "locations": [{"originalText": "string", "type": "string"}],
-  "people": [{"name": "string", "role": "string"}],
-  "organizations": [{"name": "string", "type": "string"}],
-  "actionItems": ["string"]
-}
-''';
-    return generateText(prompt, forceJson: true);
-  }
-
-  Future<AIGenerationResponse> _makeRequest(Map<String, dynamic> body) async {
-    try {
-      final uri = Uri.https(
-        _baseUrl,
-        '/$_apiVersion/models/${_config.model}:generateContent',
-        {'key': _config.apiKey},
-      );
-      final request = await _client.postUrl(uri);
-      request.headers.contentType = ContentType.json;
-      request.write(json.encode(body));
-      final response = await request.close().timeout(_config.timeout);
-      final responseBody = await _readResponse(response);
-      if (response.statusCode != 200) {
-        throw _parseError(responseBody, response.statusCode);
-      }
-      return _parseResponse(json.decode(responseBody));
-    } on TimeoutException {
-      throw const AIException('Request timed out', errorCode: 'timeout');
-    } catch (e) {
-      if (e is AIException) rethrow;
-      throw AIException('AI request failed: $e');
-    }
-  }
-
-  /// Updated with safer type-checking for reasoning parts
-  AIGenerationResponse _parseResponse(Map<String, dynamic> jsonResponse) {
-    final candidates = jsonResponse['candidates'] as List?;
-    if (candidates == null || candidates.isEmpty)
-      throw const AIException('No response generated');
-
-    final candidate = candidates.first;
-    final parts = candidate['content']?['parts'] as List?;
-    if (parts == null || parts.isEmpty)
-      throw const AIException('No content in response');
-
-    String text = "";
-    String? reasoning;
-
-    for (var part in parts) {
-      if (part.containsKey('text')) {
-        final content = part['text'];
-        if (content is String) {
-          text += content;
-        } else if (content is Map) {
-          reasoning = content['reasoning_content'] ?? content.toString();
-        }
-      } else if (part.containsKey('reasoningFeedback')) {
-        reasoning = part['reasoningFeedback']['text']?.toString();
-      }
-    }
-
-    if (text.contains('```json')) {
-      text = text.split('```json')[1].split('```')[0].trim();
-    } else if (text.contains('```')) {
-      text = text.split('```')[1].split('```')[0].trim();
-    }
-
-    final usage = jsonResponse['usageMetadata'] ?? {};
-    return AIGenerationResponse(
-      text: text,
-      reasoning: reasoning,
-      promptTokens: usage['promptTokenCount'] ?? 0,
-      completionTokens: usage['candidatesTokenCount'] ?? 0,
-      finishReason: candidate['finishReason'],
-      metadata: usage,
-    );
-  }
-
-  AIException _parseError(String body, int statusCode) {
-    try {
-      final json = jsonDecode(body);
-      return AIException(
-        json['error']?['message'] ?? 'Unknown error',
-        statusCode: statusCode,
-      );
-    } catch (_) {
-      return AIException('Status $statusCode', statusCode: statusCode);
-    }
-  }
-
-  Future<String> _readResponse(HttpClientResponse response) async {
-    return response.transform(utf8.decoder).join();
-  }
-
-  String _getMimeType(String filePath) {
-    final ext = filePath.split('.').last.toLowerCase();
-    switch (ext) {
-      case 'png':
-        return 'image/png';
-      case 'webp':
-        return 'image/webp';
-      default:
-        return 'image/jpeg';
-    }
+    throw UnimplementedError('AIService is deprecated. Use AudioSummarizationService instead.');
   }
 
   void dispose() => _client.close();

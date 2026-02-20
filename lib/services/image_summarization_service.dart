@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:neuranotteai/model/summary_model.dart';
-import 'package:neuranotteai/services/ai_service.dart';
+import 'package:neuranotteai/services/hugging_face_service.dart';
 
 /// Result of image summarization
 class ImageSummarizationResult {
@@ -45,12 +45,13 @@ class ImageSummarizationException implements Exception {
   String toString() => 'ImageSummarizationException: $message';
 }
 
-/// Service for summarizing images using Vision AI
+/// Service for summarizing images using Hugging Face Vision AI
 class ImageSummarizationService {
-  final AIService _aiService;
+  final HuggingFaceService _huggingFaceService;
 
-  ImageSummarizationService({required AIService aiService})
-      : _aiService = aiService;
+  ImageSummarizationService({
+    required HuggingFaceService huggingFaceService,
+  }) : _huggingFaceService = huggingFaceService;
 
   /// Summarize an image from file path
   Future<ImageSummarizationResult> summarizeFromFile(String filePath) async {
@@ -111,20 +112,16 @@ class ImageSummarizationService {
     }
   }
 
-  /// Core summarization logic
+  /// Core summarization logic using Hugging Face
   Future<ImageSummarizationResult> _summarize(
     Uint8List bytes,
     String mimeType,
   ) async {
     try {
-      // Use AI service to analyze image with entity extraction
-      final response = await _aiService.summarizeImageWithEntities(
+      final parsed = await _huggingFaceService.summarizeImageWithEntities(
         imageBytes: bytes,
         mimeType: mimeType,
       );
-
-      // Parse the JSON response
-      final parsed = _parseResponse(response.text);
 
       return ImageSummarizationResult(
         summary: parsed['summary'] ?? 'No summary available',
@@ -133,13 +130,13 @@ class ImageSummarizationService {
         people: _parsePeople(parsed['people']),
         organizations: _parseOrganizations(parsed['organizations']),
         actionItems: _parseActionItems(parsed['actionItems']),
-        tokensUsed: response.totalTokens,
+        tokensUsed: 0, // Hugging Face doesn't use tokens
         confidenceScore: _calculateConfidence(parsed),
         rawResponse: parsed,
       );
-    } on AIException catch (e) {
+    } on HuggingFaceException catch (e) {
       throw ImageSummarizationException(
-        'AI analysis failed: ${e.message}',
+        'Hugging Face analysis failed: ${e.message}',
         code: e.errorCode,
       );
     }
@@ -372,9 +369,11 @@ class ImageSummarizationService {
 
 /// OCR-specific service for text extraction from images
 class OCRService {
-  final AIService _aiService;
+  final HuggingFaceService _huggingFaceService;
 
-  OCRService({required AIService aiService}) : _aiService = aiService;
+  OCRService({
+    required HuggingFaceService huggingFaceService,
+  }) : _huggingFaceService = huggingFaceService;
 
   /// Extract text from an image file
   Future<String> extractTextFromFile(String filePath) async {
@@ -403,19 +402,15 @@ class OCRService {
     required String mimeType,
   }) async {
     try {
-      final response = await _aiService.analyzeImage(
+      // Hugging Face BLIP models are for captioning, not OCR
+      // For OCR, we'd need a different model like 'microsoft/trocr-base-printed'
+      // For now, use captioning which provides image description
+      final response = await _huggingFaceService.analyzeImage(
         imageBytes: bytes,
         mimeType: mimeType,
-        prompt: '''
-Extract all text visible in this image. 
-Maintain the original formatting and structure as much as possible.
-If the image contains a document, form, or note, preserve the layout.
-Return ONLY the extracted text, no additional commentary.
-''',
       );
-
-      return response.text.trim();
-    } on AIException catch (e) {
+      return response.caption.trim();
+    } on HuggingFaceException catch (e) {
       throw ImageSummarizationException(
         'OCR failed: ${e.message}',
         code: e.errorCode,

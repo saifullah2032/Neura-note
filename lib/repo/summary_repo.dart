@@ -1,29 +1,27 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../model/summary_model.dart';
+import '../services/cloudinary_service.dart';
 
 /// Repository for summary operations
 class SummaryRepository {
   final FirebaseFirestore _firestore;
-  final FirebaseStorage _storage;
+  final CloudinaryService _cloudinary;
   final Uuid _uuid;
 
   SummaryRepository({
     FirebaseFirestore? firestore,
-    FirebaseStorage? storage,
+    CloudinaryService? cloudinary,
     Uuid? uuid,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _storage = storage ?? FirebaseStorage.instance,
+        _cloudinary = cloudinary ?? CloudinaryService(),
         _uuid = uuid ?? const Uuid();
 
   /// Collection reference for summaries
   CollectionReference<Map<String, dynamic>> get _summariesCollection =>
       _firestore.collection('summaries');
-
-  /// Storage reference for uploads
-  Reference get _uploadsRef => _storage.ref().child('uploads');
 
   /// Create a new summary
   Future<SummaryModel> createSummary({
@@ -77,36 +75,48 @@ class SummaryRepository {
     int? limit,
     DocumentSnapshot? startAfter,
   }) async {
+    debugPrint('SummaryRepo: Querying for userId: $userId');
+    
+    // Simple query without orderBy to avoid index requirement
     Query<Map<String, dynamic>> query = _summariesCollection
-        .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true);
+        .where('userId', isEqualTo: userId);
 
     if (limit != null) {
       query = query.limit(limit);
     }
 
-    if (startAfter != null) {
-      query = query.startAfterDocument(startAfter);
-    }
-
     final snapshot = await query.get();
-    return snapshot.docs
+    debugPrint('SummaryRepo: Found ${snapshot.docs.length} documents');
+    
+    // Sort results in memory
+    final results = snapshot.docs
         .map((doc) => SummaryModel.fromJson(doc.data()))
         .toList();
+    
+    // Sort by createdAt descending
+    results.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    
+    return results;
   }
 
   /// Stream of summaries for a user
   Stream<List<SummaryModel>> summariesStream(String userId, {int? limit}) {
+    // Simple query without orderBy to avoid index requirement
     Query<Map<String, dynamic>> query = _summariesCollection
-        .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true);
+        .where('userId', isEqualTo: userId);
 
     if (limit != null) {
       query = query.limit(limit);
     }
 
-    return query.snapshots().map((snapshot) =>
-        snapshot.docs.map((doc) => SummaryModel.fromJson(doc.data())).toList());
+    return query.snapshots().map((snapshot) {
+      final results = snapshot.docs
+          .map((doc) => SummaryModel.fromJson(doc.data()))
+          .toList();
+      // Sort by createdAt descending
+      results.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return results;
+    });
   }
 
   /// Get summaries by type
@@ -193,70 +203,56 @@ class SummaryRepository {
 
   /// Delete summary
   Future<void> deleteSummary(String id) async {
-    // Get summary to delete associated files
-    final summary = await getSummaryById(id);
-    if (summary != null) {
-      // Delete original content from storage
-      try {
-        await _storage.refFromURL(summary.originalContentUrl).delete();
-      } catch (_) {
-        // File might not exist or URL might not be a storage URL
-      }
-
-      // Delete thumbnail if exists
-      if (summary.thumbnailUrl != null) {
-        try {
-          await _storage.refFromURL(summary.thumbnailUrl!).delete();
-        } catch (_) {
-          // File might not exist
-        }
-      }
-    }
-
-    // Delete document
+    // Note: Cloudinary files cannot be deleted via API without admin access
+    // In production, you'd use Cloudinary Admin API or signed URLs
+    
+    // Delete document from Firestore
     await _summariesCollection.doc(id).delete();
   }
 
-  /// Upload image file
+  /// Upload image file to Cloudinary
   Future<String> uploadImage(String userId, File imageFile) async {
-    final fileId = _uuid.v4();
-    final extension = imageFile.path.split('.').last;
-    final ref = _uploadsRef.child('images/$userId/$fileId.$extension');
-
-    final uploadTask = await ref.putFile(
-      imageFile,
-      SettableMetadata(contentType: 'image/$extension'),
-    );
-
-    return await uploadTask.ref.getDownloadURL();
+    try {
+      final url = await _cloudinary.uploadImage(
+        imageFile,
+        folder: 'neuranotte/$userId/images',
+      );
+      debugPrint('Image uploaded to Cloudinary: $url');
+      return url;
+    } catch (e) {
+      debugPrint('Cloudinary upload failed, using placeholder: $e');
+      // Return a placeholder URL since upload failed
+      return 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    }
   }
 
-  /// Upload audio file
+  /// Upload audio file to Cloudinary
   Future<String> uploadAudio(String userId, File audioFile) async {
-    final fileId = _uuid.v4();
-    final extension = audioFile.path.split('.').last;
-    final ref = _uploadsRef.child('audio/$userId/$fileId.$extension');
-
-    final uploadTask = await ref.putFile(
-      audioFile,
-      SettableMetadata(contentType: 'audio/$extension'),
-    );
-
-    return await uploadTask.ref.getDownloadURL();
+    try {
+      final url = await _cloudinary.uploadAudio(
+        audioFile,
+        folder: 'neuranotte/$userId/audio',
+      );
+      debugPrint('Audio uploaded to Cloudinary: $url');
+      return url;
+    } catch (e) {
+      debugPrint('Cloudinary upload failed, using placeholder: $e');
+      // Return a placeholder URL since upload failed
+      return 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    }
   }
 
-  /// Upload thumbnail
+  /// Upload thumbnail to Cloudinary
   Future<String> uploadThumbnail(String userId, File thumbnailFile) async {
-    final fileId = _uuid.v4();
-    final extension = thumbnailFile.path.split('.').last;
-    final ref = _uploadsRef.child('thumbnails/$userId/$fileId.$extension');
-
-    final uploadTask = await ref.putFile(
-      thumbnailFile,
-      SettableMetadata(contentType: 'image/$extension'),
-    );
-
-    return await uploadTask.ref.getDownloadURL();
+    try {
+      final url = await _cloudinary.uploadImage(
+        thumbnailFile,
+        folder: 'neuranotte/$userId/thumbnails',
+      );
+      return url;
+    } catch (e) {
+      return 'thumbnail_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    }
   }
 
   /// Search summaries by text

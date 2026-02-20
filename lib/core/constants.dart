@@ -102,6 +102,32 @@ class AppConstants {
   static const String tokenErrorMessage = 'Insufficient tokens. Please purchase more.';
   static const String locationErrorMessage = 'Location services are disabled. Please enable them.';
   static const String permissionErrorMessage = 'Permission denied. Please grant the required permissions.';
+
+  // API Keys Configuration
+  // Hardcoded API keys - can be overridden via --dart-define flags
+  static const String groqApiKey = String.fromEnvironment(
+    'GROQ_API_KEY',
+    defaultValue: '',
+  );
+  static const String huggingFaceApiKey = String.fromEnvironment(
+    'HUGGINGFACE_API_KEY',
+    defaultValue: '',
+  );
+  static const String googleMapsApiKey = String.fromEnvironment('GOOGLE_MAPS_API_KEY', defaultValue: '');
+
+  // Cloudinary Configuration
+  static const String cloudinaryCloudName = '';
+  static const String cloudinaryApiKey = '';
+  static const String cloudinaryApiSecret = '';
+
+  // AI Service Base URLs
+  static const String groqBaseUrl = 'https://api.groq.com/openai/v1';
+  static const String huggingFaceBaseUrl = 'https://router.huggingface.co';
+
+  // AI Model Configuration
+  static const String groqWhisperModel = 'whisper-large-v3';
+  static const String huggingFaceImageModel = 'Salesforce/blip-image-captioning-base';
+  static const String huggingFaceTextModel = 'facebook/bart-large-cnn';
 }
 
 /// Route names for navigation
