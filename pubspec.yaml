@@ -26,6 +26,7 @@ dependencies:
   firebase_auth: ^5.3.0
   cloud_firestore: ^5.4.0
   firebase_storage: ^12.3.0
+  firebase_app_check: ^0.3.2+10
 
   # Google Services
   google_sign_in: ^6.2.1
@@ -78,4 +79,15 @@ flutter:
     - assets/animations/elk.riv
     - assets/animations/voice.riv
     - .env
+  fonts:
+    - family: ClashDisplay
+      fonts:
+        - asset: assets/fonts/ClashDisplay-Bold.otf
+          weight: 700
+        - asset: assets/fonts/ClashDisplay-Medium.otf
+          weight: 500
+    - family: Satoshi
+      fonts:
+        - asset: assets/fonts/Satoshi-Regular.otf
+          weight: 400
   uses-material-design: true

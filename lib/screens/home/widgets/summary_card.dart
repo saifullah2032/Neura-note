@@ -1,125 +1,123 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:neuranotteai/model/summary_model.dart';
+import '../../../core/themes.dart';
+import '../../../core/fluid_components.dart';
+import '../../../model/summary_model.dart';
 
 class SummaryCard extends StatelessWidget {
   final SummaryModel summary;
   final VoidCallback onTap;
 
-  const SummaryCard({super.key, required this.summary, required this.onTap});
+  const SummaryCard({
+    super.key, 
+    required this.summary, 
+    required this.onTap
+  });
 
   @override
   Widget build(BuildContext context) {
-    final teal = Colors.teal;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
     final isImage = summary.type == SummaryType.image;
 
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      elevation: 2,
-      shadowColor: teal.withValues(alpha: 0.2),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: teal.withValues(alpha: 0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+    return RepaintBoundary(
+      child: Hero(
+        tag: 'summary_${summary.id}',
+        child: OceanCard(
+          onTap: onTap,
+          padding: EdgeInsets.zero,
+          blurSigma: 8,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image or Audio icon area
+              // Image/Audio Preview Area
               Expanded(
                 flex: 3,
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F9F8),
+                    color: colorScheme.primary.withValues(alpha: 0.05),
                     borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(18),
+                      top: Radius.circular(20),
                     ),
                   ),
                   child: isImage
-                      ? _buildImagePreview()
-                      : _buildAudioPreview(teal),
+                      ? _buildImagePreview(colorScheme)
+                      : _buildAudioPreview(colorScheme),
                 ),
               ),
-              // Content area
+              
+              // Content Area
               Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Type label with icon
+                      // Type Label
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(4),
+                            padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
-                              color: teal.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              color: colorScheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: Icon(
-                              isImage
-                                  ? Icons.image_outlined
-                                  : Icons.mic_outlined,
-                              size: 12,
-                              color: teal,
+                              isImage ? Icons.image_outlined : Icons.mic_outlined,
+                              size: 10,
+                              color: colorScheme.primary,
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            isImage ? 'Image' : 'Voice',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: teal,
-                            ),
-                          ),
-                          const Spacer(),
-                          _buildConfidenceIndicator(),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // Summary text preview
-                      Expanded(
-                        child: Text(
-                          summary.summarizedText.length > 80
-                              ? '${summary.summarizedText.substring(0, 80)}...'
-                              : summary.summarizedText,
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: Colors.black54,
-                            height: 1.3,
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      // Date
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.access_time,
-                            size: 10,
-                            color: Colors.black26,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            _formatDate(summary.createdAt),
-                            style: GoogleFonts.poppins(
+                            isImage ? 'Image' : 'Voice',
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
                               fontSize: 9,
-                              color: Colors.black26,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          const Spacer(),
+                          _buildConfidenceIndicator(colorScheme),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 4),
+                      
+                      // Summary Text
+                      Expanded(
+                        child: Text(
+                          summary.summarizedText.length > 60
+                              ? '${summary.summarizedText.substring(0, 60)}...'
+                              : summary.summarizedText,
+                          style: textTheme.bodySmall?.copyWith(
+                            fontSize: 10,
+                            color: colorScheme.onSurface.withValues(alpha: 0.7),
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      
+                      // Date
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            size: 9,
+                            color: colorScheme.outline,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            _formatDate(summary.createdAt),
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 8,
+                              color: colorScheme.outline,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -136,10 +134,10 @@ class SummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildImagePreview() {
+  Widget _buildImagePreview(ColorScheme colorScheme) {
     if (summary.thumbnailUrl != null && summary.thumbnailUrl!.isNotEmpty) {
       return ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         child: Image.network(
           summary.thumbnailUrl!,
           fit: BoxFit.cover,
@@ -153,29 +151,34 @@ class SummaryCard extends StatelessWidget {
                           loadingProgress.expectedTotalBytes!
                     : null,
                 strokeWidth: 2,
-                color: Colors.teal,
+                color: colorScheme.primary,
               ),
             );
           },
-          errorBuilder: (context, error, stackTrace) => _buildPlaceholderIcon(),
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholderIcon(colorScheme),
         ),
       );
     }
-    return _buildPlaceholderIcon();
+    return _buildPlaceholderIcon(colorScheme);
   }
 
-  Widget _buildPlaceholderIcon() {
+  Widget _buildPlaceholderIcon(ColorScheme colorScheme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.image_outlined, size: 36, color: Colors.teal.shade200),
+          Icon(
+            Icons.image_outlined, 
+            size: 36, 
+            color: colorScheme.primary.withValues(alpha: 0.3)
+          ),
           const SizedBox(height: 4),
           Text(
             'No preview',
-            style: GoogleFonts.poppins(
+            style: TextStyle(
+              fontFamily: 'Satoshi',
               fontSize: 10,
-              color: Colors.teal.shade200,
+              color: colorScheme.primary.withValues(alpha: 0.3),
             ),
           ),
         ],
@@ -183,33 +186,34 @@ class SummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAudioPreview(Color teal) {
+  Widget _buildAudioPreview(ColorScheme colorScheme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: teal.withOpacity(0.1),
+              color: colorScheme.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.mic, size: 28, color: teal),
+            child: Icon(Icons.mic, size: 22, color: colorScheme.primary),
           ),
-          const SizedBox(height: 8),
-          if (summary.rawTranscript != null &&
-              summary.rawTranscript!.isNotEmpty)
+          const SizedBox(height: 4),
+          if (summary.rawTranscript != null && summary.rawTranscript!.isNotEmpty)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: teal.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 _formatDuration(summary.rawTranscript!.length),
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: teal,
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 9,
+                  color: colorScheme.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -219,26 +223,26 @@ class SummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildConfidenceIndicator() {
+  Widget _buildConfidenceIndicator(ColorScheme colorScheme) {
     final confidence = summary.confidenceScore ?? 0.0;
     Color color;
     String label;
 
     if (confidence >= 0.8) {
-      color = Colors.green;
+      color = AppTheme.success;
       label = 'High';
     } else if (confidence >= 0.5) {
-      color = Colors.orange;
+      color = AppTheme.warning;
       label = 'Med';
     } else {
-      color = Colors.grey;
+      color = colorScheme.outline;
       label = 'Low';
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -252,7 +256,8 @@ class SummaryCard extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: GoogleFonts.poppins(
+            style: TextStyle(
+              fontFamily: 'Satoshi',
               fontSize: 8,
               color: color,
               fontWeight: FontWeight.w600,

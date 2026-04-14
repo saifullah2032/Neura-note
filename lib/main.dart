@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import 'core/routes.dart';
 import 'core/themes.dart';
 import 'firebase_options.dart';
@@ -38,6 +39,7 @@ class NeuraNoteAI extends StatelessWidget {
         title: 'NeuraNote AI',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
+        themeMode: ThemeMode.light,
         routerConfig: appRouter,
       ),
     );

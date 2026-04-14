@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/themes.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/token_provider.dart';
 import '../widgets/ocean_animations.dart';
-import '../widgets/ocean_ui_components.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final teal = Colors.teal;
-    const oceanBlue = Color(0xFF00838F);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: colorScheme.surfaceContainerHighest,
       body: OceanBackground(
-        primaryColor: teal,
+        primaryColor: colorScheme.primary,
         waveHeight: 150,
         child: SafeArea(
           child: Stack(
@@ -32,15 +32,15 @@ class ProfileScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           const SizedBox(height: 20),
-                          _buildHeader(context, teal),
+                          _buildHeader(context, textTheme),
                           const SizedBox(height: 32),
-                          _buildProfileCard(context, teal, oceanBlue),
+                          _buildProfileCard(context, colorScheme, textTheme),
                           const SizedBox(height: 24),
-                          _buildTokenCard(context, teal, oceanBlue),
+                          _buildTokenCard(context, colorScheme, textTheme),
                           const SizedBox(height: 24),
-                          _buildPremiumCard(context, teal, oceanBlue),
+                          _buildPremiumCard(context, colorScheme, textTheme),
                           const SizedBox(height: 24),
-                          _buildSettingsSection(context, teal),
+                          _buildSettingsSection(context, colorScheme, textTheme),
                           const SizedBox(height: 100),
                         ],
                       ),
@@ -58,18 +58,18 @@ class ProfileScreen extends StatelessWidget {
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colorScheme.surface,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: teal.withOpacity(0.2),
+                            color: colorScheme.primary.withValues(alpha: 0.2),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
                         ],
                       ),
                       child: Icon(Icons.arrow_back_ios_new, 
-                        color: teal, size: 18),
+                        color: colorScheme.primary, size: 18),
                     ),
                   ),
                 ),
@@ -81,30 +81,30 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, MaterialColor teal) {
+  Widget _buildHeader(BuildContext context, TextTheme textTheme) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Column(
       children: [
         Text(
           'Your Profile',
-          style: GoogleFonts.poppins(
-            fontSize: 28,
+          style: textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: teal.shade900,
+            color: colorScheme.primary,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           'Manage your account and preferences',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: Colors.grey.shade600,
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildProfileCard(BuildContext context, MaterialColor teal, Color oceanBlue) {
+  Widget _buildProfileCard(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
         final firebaseUser = authProvider.firebaseUser;
@@ -119,14 +119,14 @@ class ProfileScreen extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                teal.shade400,
-                oceanBlue,
+                colorScheme.primary,
+                colorScheme.primaryContainer,
               ],
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: teal.withOpacity(0.3),
+                color: colorScheme.primary.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -154,7 +154,7 @@ class ProfileScreen extends StatelessWidget {
                           ? NetworkImage(photoUrl) 
                           : null,
                       child: photoUrl == null
-                          ? Icon(Icons.person, size: 50, color: teal.shade700)
+                          ? Icon(Icons.person, size: 50, color: colorScheme.primary)
                           : null,
                     ),
                     Positioned(
@@ -162,13 +162,13 @@ class ProfileScreen extends StatelessWidget {
                       right: 0,
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.verified,
-                          color: oceanBlue,
+                          color: colorScheme.primary,
                           size: 20,
                         ),
                       ),
@@ -179,24 +179,22 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
               Text(
                 displayName,
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
+                style: textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                 ),
               ),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   email,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.9),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onPrimary.withValues(alpha: 0.9),
                   ),
                 ),
               ),
@@ -207,7 +205,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTokenCard(BuildContext context, MaterialColor teal, Color oceanBlue) {
+  Widget _buildTokenCard(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
     return Consumer<TokenProvider>(
       builder: (context, tokenProvider, _) {
         final remaining = tokenProvider.remainingTokens;
@@ -217,11 +215,11 @@ class ProfileScreen extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: colorScheme.shadow.withValues(alpha: 0.05),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -236,13 +234,13 @@ class ProfileScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [teal.shade300, teal.shade500],
+                        colors: [colorScheme.primary, colorScheme.primaryContainer],
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.water_drop,
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       size: 24,
                     ),
                   ),
@@ -253,18 +251,14 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         Text(
                           'AI Tokens',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
+                          style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: teal.shade900,
+                            color: colorScheme.primary,
                           ),
                         ),
                         Text(
                           'Use for AI summarization',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
+                          style: textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -272,15 +266,14 @@ class ProfileScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: teal.withOpacity(0.1),
+                      color: colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '$remaining / $total',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
+                      style: textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: teal,
+                        color: colorScheme.primary,
                       ),
                     ),
                   ),
@@ -292,13 +285,13 @@ class ProfileScreen extends StatelessWidget {
                 child: TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: usagePercent),
                   duration: const Duration(milliseconds: 1500),
-                  curve: Curves.easeOutCubic,
+                  curve: Curves.easeOutQuart,
                   builder: (context, value, child) {
                     return LinearProgressIndicator(
                       value: value,
-                      backgroundColor: Colors.grey.shade200,
+                      backgroundColor: colorScheme.surfaceContainerHighest,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        usagePercent > 0.8 ? Colors.orange : teal,
+                        usagePercent > 0.8 ? Colors.orange : colorScheme.primary,
                       ),
                       minHeight: 8,
                     );
@@ -310,8 +303,7 @@ class ProfileScreen extends StatelessWidget {
                 remaining > 10 
                     ? 'You have plenty of tokens left!' 
                     : 'Running low on tokens',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
+                style: textTheme.bodySmall?.copyWith(
                   color: remaining > 10 ? Colors.green : Colors.orange,
                 ),
               ),
@@ -322,7 +314,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPremiumCard(BuildContext context, MaterialColor teal, Color oceanBlue) {
+  Widget _buildPremiumCard(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -338,7 +330,7 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4A148C).withOpacity(0.3),
+            color: const Color(0xFF4A148C).withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -365,17 +357,15 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 Text(
                   'Go Premium',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
+                  style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
                 Text(
                   'Unlimited tokens & features',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.8),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -383,7 +373,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Material(
@@ -395,7 +385,7 @@ class ProfileScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Text(
                     'Upgrade',
-                    style: GoogleFonts.poppins(
+                    style: textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF4A148C),
                     ),
@@ -409,14 +399,14 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingsSection(BuildContext context, MaterialColor teal) {
+  Widget _buildSettingsSection(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -428,35 +418,39 @@ class ProfileScreen extends StatelessWidget {
             icon: Icons.notifications_outlined,
             title: 'Notifications',
             subtitle: 'Manage notification preferences',
-            teal: teal,
+            colorScheme: colorScheme,
+            textTheme: textTheme,
             onTap: () {},
           ),
-          Divider(height: 1, color: Colors.grey.shade200),
+          Divider(height: 1, color: colorScheme.outline.withValues(alpha: 0.2)),
           _buildSettingsTile(
             icon: Icons.location_on_outlined,
             title: 'Location Settings',
             subtitle: 'Configure location reminders',
-            teal: teal,
+            colorScheme: colorScheme,
+            textTheme: textTheme,
             onTap: () {},
           ),
-          Divider(height: 1, color: Colors.grey.shade200),
+          Divider(height: 1, color: colorScheme.outline.withValues(alpha: 0.2)),
           _buildSettingsTile(
             icon: Icons.calendar_month_outlined,
             title: 'Calendar Sync',
             subtitle: 'Connect Google Calendar',
-            teal: teal,
+            colorScheme: colorScheme,
+            textTheme: textTheme,
             onTap: () {},
           ),
-          Divider(height: 1, color: Colors.grey.shade200),
+          Divider(height: 1, color: colorScheme.outline.withValues(alpha: 0.2)),
           _buildSettingsTile(
             icon: Icons.help_outline,
             title: 'Help & Support',
             subtitle: 'Get help with the app',
-            teal: teal,
+            colorScheme: colorScheme,
+            textTheme: textTheme,
             onTap: () {},
           ),
-          Divider(height: 1, color: Colors.grey.shade200),
-          _buildSignOutTile(context, teal),
+          Divider(height: 1, color: colorScheme.outline.withValues(alpha: 0.2)),
+          _buildSignOutTile(context, colorScheme, textTheme),
         ],
       ),
     );
@@ -466,7 +460,8 @@ class ProfileScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color teal,
+    required ColorScheme colorScheme,
+    required TextTheme textTheme,
     required VoidCallback onTap,
   }) {
     return ListTile(
@@ -475,35 +470,33 @@ class ProfileScreen extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: teal.withOpacity(0.1),
+          color: colorScheme.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: teal, size: 22),
+        child: Icon(icon, color: colorScheme.primary, size: 22),
       ),
       title: Text(
         title,
-        style: GoogleFonts.poppins(
+        style: textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w600,
-          fontSize: 14,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          color: Colors.grey.shade600,
+        style: textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
         ),
       ),
       trailing: Icon(
         Icons.chevron_right,
-        color: Colors.grey.shade400,
+        color: colorScheme.outline,
       ),
     );
   }
 
-  Widget _buildSignOutTile(BuildContext context, Color teal) {
+  Widget _buildSignOutTile(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
     return ListTile(
-      onTap: () => _showSignOutDialog(context),
+      onTap: () => _showSignOutDialog(context, colorScheme, textTheme),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       leading: Container(
         padding: const EdgeInsets.all(10),
@@ -515,17 +508,15 @@ class ProfileScreen extends StatelessWidget {
       ),
       title: Text(
         'Sign Out',
-        style: GoogleFonts.poppins(
+        style: textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w600,
-          fontSize: 14,
           color: Colors.red,
         ),
       ),
       subtitle: Text(
         'Sign out of your account',
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          color: Colors.grey.shade600,
+        style: textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
         ),
       ),
       trailing: const Icon(
@@ -535,7 +526,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showSignOutDialog(BuildContext context) async {
+  void _showSignOutDialog(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) async {
     final authProvider = context.read<AuthProvider>();
     
     final confirmed = await showDialog<bool>(
@@ -558,17 +549,15 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
               Text(
                 'Sign Out',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
+                style: textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Are you sure you want to sign out?',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -586,8 +575,8 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       child: Text(
                         'Cancel',
-                        style: GoogleFonts.poppins(
-                          color: Colors.grey.shade700,
+                        style: textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -605,7 +594,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       child: Text(
                         'Sign Out',
-                        style: GoogleFonts.poppins(
+                        style: textTheme.labelLarge?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),

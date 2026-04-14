@@ -1,15 +1,17 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+import '../../core/themes.dart';
+
 class OceanBackground extends StatefulWidget {
-  final Widget child;
+  final Widget? child;
   final Color? primaryColor;
   final double waveHeight;
   final bool showBubbles;
   
   const OceanBackground({
     super.key,
-    required this.child,
+    this.child,
     this.primaryColor,
     this.waveHeight = 120,
     this.showBubbles = true,
@@ -64,20 +66,20 @@ class _OceanBackgroundState extends State<OceanBackground>
             );
           },
         ),
-        if (widget.showBubbles)
-          AnimatedBuilder(
-            animation: _bubbleController,
-            builder: (context, _) {
-              return CustomPaint(
-                painter: _BubblePainter(
-                  animation: _bubbleController.value,
-                  primaryColor: teal,
-                ),
-                size: Size.infinite,
-              );
-            },
-          ),
-        widget.child,
+          if (widget.showBubbles)
+            AnimatedBuilder(
+              animation: _bubbleController,
+              builder: (context, _) {
+                return CustomPaint(
+                  painter: _BubblePainter(
+                    animation: _bubbleController.value,
+                    primaryColor: teal,
+                  ),
+                  size: Size.infinite,
+                );
+              },
+            ),
+        if (widget.child != null) widget.child!,
       ],
     );
   }
@@ -705,4 +707,321 @@ class OceanGradientBackground extends StatelessWidget {
       child: child,
     );
   }
+}
+
+// ============================================================================
+// CORAL REEF ANIMATION - Bottom Corner Decoration
+// ============================================================================
+
+class CoralReefEffect extends StatefulWidget {
+  final Widget? child;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final double height;
+  final bool showLeft;
+  final bool showRight;
+
+  const CoralReefEffect({
+    super.key,
+    this.child,
+    this.primaryColor = const Color(0xFF385A7C),
+    this.secondaryColor = const Color(0xFF8AD6CC),
+    this.height = 200,
+    this.showLeft = true,
+    this.showRight = true,
+  });
+
+  @override
+  State<CoralReefEffect> createState() => _CoralReefEffectState();
+}
+
+class _CoralReefEffectState extends State<CoralReefEffect>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        if (widget.child != null) widget.child!,
+        if (widget.showLeft)
+          Positioned(
+            bottom: 0,
+            left: -30,
+            child: RepaintBoundary(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) {
+                  return CustomPaint(
+                    painter: _CoralPainter(
+                      animation: _controller.value,
+                      color: widget.primaryColor,
+                      isLeft: true,
+                    ),
+                    size: Size(120, widget.height),
+                  );
+                },
+              ),
+            ),
+          ),
+        if (widget.showRight)
+          Positioned(
+            bottom: 0,
+            right: -30,
+            child: RepaintBoundary(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) {
+                  return CustomPaint(
+                    painter: _CoralPainter(
+                      animation: _controller.value,
+                      color: widget.secondaryColor,
+                      isLeft: false,
+                    ),
+                    size: Size(120, widget.height),
+                  );
+                },
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _CoralPainter extends CustomPainter {
+  final double animation;
+  final Color color;
+  final bool isLeft;
+
+  _CoralPainter({
+    required this.animation,
+    required this.color,
+    required this.isLeft,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.3)
+      ..style = PaintingStyle.fill;
+
+    final paint2 = Paint()
+      ..color = color.withValues(alpha: 0.2)
+      ..style = PaintingStyle.fill;
+
+    // Draw multiple coral branches with swaying motion
+    for (int i = 0; i < 5; i++) {
+      final baseX = isLeft 
+          ? 20.0 + (i * 20) 
+          : size.width - 20.0 - (i * 20);
+      final swayOffset = sin((animation * 2 * pi) + (i * 0.5)) * 8;
+      final height = size.height * (0.4 + (i % 3) * 0.15);
+
+      final path = Path();
+      path.moveTo(baseX - 8, size.height);
+      path.quadraticBezierTo(
+        baseX + swayOffset,
+        size.height - height * 0.6,
+        baseX + swayOffset * 0.5,
+        size.height - height,
+      );
+      path.quadraticBezierTo(
+        baseX + swayOffset,
+        size.height - height * 0.6,
+        baseX + 8,
+        size.height,
+      );
+      path.close();
+
+      canvas.drawPath(path, i % 2 == 0 ? paint : paint2);
+    }
+
+    // Draw sea grass
+    final grassPaint = Paint()
+      ..color = color.withValues(alpha: 0.15)
+      ..style = PaintingStyle.fill;
+
+    for (int i = 0; i < 8; i++) {
+      final baseX = isLeft 
+          ? 10.0 + (i * 15) 
+          : size.width - 10.0 - (i * 15);
+      final swayOffset = sin((animation * 2 * pi * 0.7) + (i * 0.3)) * 5;
+      final grassHeight = size.height * (0.3 + (i % 4) * 0.1);
+
+      final path = Path();
+      path.moveTo(baseX - 2, size.height);
+      path.quadraticBezierTo(
+        baseX + swayOffset,
+        size.height - grassHeight * 0.5,
+        baseX + swayOffset * 0.8,
+        size.height - grassHeight,
+      );
+      path.quadraticBezierTo(
+        baseX + swayOffset,
+        size.height - grassHeight * 0.5,
+        baseX + 2,
+        size.height,
+      );
+      path.close();
+
+      canvas.drawPath(path, grassPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CoralPainter oldDelegate) {
+    return oldDelegate.animation != animation || 
+           oldDelegate.color != color;
+  }
+}
+
+// ============================================================================
+// UNDERWATER CURRENT EFFECT - Subtle Background Movement
+// ============================================================================
+
+class UnderwaterCurrentBackground extends StatefulWidget {
+  final Widget child;
+  final Color primaryColor;
+  final Color accentColor;
+
+  const UnderwaterCurrentBackground({
+    super.key,
+    required this.child,
+    this.primaryColor = const Color(0xFF385A7C),
+    this.accentColor = const Color(0xFF8AD6CC),
+  });
+
+  @override
+  State<UnderwaterCurrentBackground> createState() => _UnderwaterCurrentBackgroundState();
+}
+
+class _UnderwaterCurrentBackgroundState extends State<UnderwaterCurrentBackground>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Gradient background
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                widget.primaryColor.withValues(alpha: 0.05),
+                widget.accentColor.withValues(alpha: 0.08),
+                AppTheme.backgroundBeachSand,
+              ],
+            ),
+          ),
+        ),
+        // Animated orbs
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            return CustomPaint(
+              painter: _OrbPainter(
+                animation: _controller.value,
+                primaryColor: widget.primaryColor,
+                accentColor: widget.accentColor,
+              ),
+              size: Size.infinite,
+            );
+          },
+        ),
+        widget.child,
+      ],
+    );
+  }
+}
+
+class _OrbPainter extends CustomPainter {
+  final double animation;
+  final Color primaryColor;
+  final Color accentColor;
+
+  _OrbPainter({
+    required this.animation,
+    required this.primaryColor,
+    required this.accentColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Draw floating orbs
+    final orbs = [
+      _OrbData(size.width * 0.2, size.height * 0.3, 60, primaryColor, 0.08),
+      _OrbData(size.width * 0.8, size.height * 0.2, 80, accentColor, 0.06),
+      _OrbData(size.width * 0.5, size.height * 0.6, 50, primaryColor, 0.05),
+    ];
+
+    for (final orb in orbs) {
+      final yOffset = sin((animation * 2 * pi) + orb.phase) * 20;
+      final paint = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            orb.color.withValues(alpha: orb.opacity.clamp(0.0, 1.0)),
+            orb.color.withValues(alpha: 0.01),
+          ],
+        ).createShader(Rect.fromCircle(
+          center: Offset(orb.x, orb.y + yOffset),
+          radius: orb.radius,
+        ));
+
+      canvas.drawCircle(
+        Offset(orb.x, orb.y + yOffset),
+        orb.radius,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _OrbPainter oldDelegate) {
+    return oldDelegate.animation != animation;
+  }
+}
+
+class _OrbData {
+  final double x;
+  final double y;
+  final double radius;
+  final Color color;
+  final double opacity;
+  final double phase;
+
+  _OrbData(this.x, this.y, this.radius, this.color, this.opacity, [this.phase = 0]);
 }

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../model/reminder_model.dart';
 import '../../model/summary_model.dart';
 
-/// A bottom sheet widget for picking/confirming a location for a reminder
 class LocationPickerSheet extends StatefulWidget {
   final LocationEntity? initialEntity;
   final Function(GeoLocation location, double radius, GeofenceTriggerType trigger) onConfirm;
@@ -50,10 +48,14 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Padding(
         padding: EdgeInsets.only(
@@ -72,7 +74,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: colorScheme.outline.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -80,52 +82,45 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
               const SizedBox(height: 20),
               Text(
                 'Set Location Reminder',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
+                style: textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.teal.shade800,
+                  color: colorScheme.primary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Get reminded when you arrive at this location',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 24),
 
-              // Location Search/Display
-              _buildLocationField(),
+              _buildLocationField(colorScheme, textTheme),
               const SizedBox(height: 24),
 
-              // Radius Slider
-              _buildRadiusSlider(),
+              _buildRadiusSlider(colorScheme, textTheme),
               const SizedBox(height: 24),
 
-              // Trigger Type Selection
-              _buildTriggerTypeSelection(),
+              _buildTriggerTypeSelection(colorScheme, textTheme),
               const SizedBox(height: 32),
 
-              // Confirm Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _selectedLocation != null ? _onConfirm : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    disabledBackgroundColor: Colors.grey.shade300,
+                    disabledBackgroundColor: colorScheme.surfaceContainerHighest,
                   ),
                   child: Text(
                     'Create Reminder',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
+                    style: textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -138,30 +133,31 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     );
   }
 
-  Widget _buildLocationField() {
+  Widget _buildLocationField(ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Location',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
+          style: textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.grey.shade700,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
+            color: colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
           ),
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Search for a location...',
-              hintStyle: GoogleFonts.poppins(color: Colors.grey.shade400),
+              hintStyle: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
               prefixIcon: Icon(Icons.location_on, color: Colors.orange.shade400),
               suffixIcon: _isSearching
                   ? const Padding(
@@ -173,12 +169,12 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                       ),
                     )
                   : _selectedLocation != null
-                      ? Icon(Icons.check_circle, color: Colors.green.shade400)
+                      ? Icon(Icons.check_circle, color: Colors.green)
                       : null,
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
-            style: GoogleFonts.poppins(fontSize: 15),
+            style: textTheme.bodyMedium,
             onSubmitted: _searchLocation,
           ),
         ),
@@ -187,7 +183,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.08),
+              color: Colors.orange.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -200,18 +196,16 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                     children: [
                       Text(
                         _selectedLocation!.placeName ?? 'Selected Location',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
+                        style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       if (_selectedLocation!.address != null)
                         Text(
                           _selectedLocation!.address!,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -227,7 +221,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     );
   }
 
-  Widget _buildRadiusSlider() {
+  Widget _buildRadiusSlider(ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -236,24 +230,22 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
           children: [
             Text(
               'Trigger Radius',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
+              style: textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+                color: colorScheme.onSurface,
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.teal.withOpacity(0.1),
+                color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 '${_radius.toInt()}m',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
+                style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: Colors.teal,
+                  color: colorScheme.primary,
                 ),
               ),
             ),
@@ -262,10 +254,10 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
         const SizedBox(height: 12),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
-            activeTrackColor: Colors.teal,
-            inactiveTrackColor: Colors.teal.withOpacity(0.2),
-            thumbColor: Colors.teal,
-            overlayColor: Colors.teal.withOpacity(0.1),
+            activeTrackColor: colorScheme.primary,
+            inactiveTrackColor: colorScheme.primary.withValues(alpha: 0.2),
+            thumbColor: colorScheme.primary,
+            overlayColor: colorScheme.primary.withValues(alpha: 0.1),
             trackHeight: 6,
           ),
           child: Slider(
@@ -283,11 +275,15 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
           children: [
             Text(
               '50m',
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500),
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             Text(
               '1km',
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500),
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -295,16 +291,15 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     );
   }
 
-  Widget _buildTriggerTypeSelection() {
+  Widget _buildTriggerTypeSelection(ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Trigger When',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
+          style: textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.grey.shade700,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 12),
@@ -314,18 +309,21 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
               GeofenceTriggerType.enter,
               Icons.login,
               'Arriving',
+              colorScheme,
             ),
             const SizedBox(width: 12),
             _buildTriggerOption(
               GeofenceTriggerType.exit,
               Icons.logout,
               'Leaving',
+              colorScheme,
             ),
             const SizedBox(width: 12),
             _buildTriggerOption(
               GeofenceTriggerType.dwell,
               Icons.schedule,
               'Staying',
+              colorScheme,
             ),
           ],
         ),
@@ -333,7 +331,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     );
   }
 
-  Widget _buildTriggerOption(GeofenceTriggerType type, IconData icon, String label) {
+  Widget _buildTriggerOption(GeofenceTriggerType type, IconData icon, String label, ColorScheme colorScheme) {
     final isSelected = _triggerType == type;
     return Expanded(
       child: GestureDetector(
@@ -341,10 +339,10 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.teal.withOpacity(0.1) : Colors.grey.shade50,
+            color: isSelected ? colorScheme.primary.withValues(alpha: 0.1) : colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? Colors.teal : Colors.grey.shade200,
+              color: isSelected ? colorScheme.primary : colorScheme.outline.withValues(alpha: 0.2),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -352,16 +350,17 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
             children: [
               Icon(
                 icon,
-                color: isSelected ? Colors.teal : Colors.grey.shade400,
+                color: isSelected ? colorScheme.primary : colorScheme.outline,
                 size: 24,
               ),
               const SizedBox(height: 4),
               Text(
                 label,
-                style: GoogleFonts.poppins(
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected ? Colors.teal : Colors.grey.shade600,
+                  color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -376,8 +375,6 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
 
     setState(() => _isSearching = true);
 
-    // TODO: Implement actual geocoding using GeocodingService
-    // For now, use the initial entity if available
     await Future.delayed(const Duration(milliseconds: 500));
 
     if (widget.initialEntity?.hasCoordinates == true) {
@@ -391,7 +388,6 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
         _isSearching = false;
       });
     } else {
-      // Mock location for demo
       setState(() {
         _selectedLocation = GeoLocation(
           latitude: 37.7749,
@@ -412,7 +408,6 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
   }
 }
 
-/// A compact reminder type selector for quick creation
 class ReminderTypeSelector extends StatelessWidget {
   final bool hasDateTimeEntities;
   final bool hasLocationEntities;
@@ -469,9 +464,9 @@ class ReminderTypeSelector extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
+            color: color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -480,7 +475,8 @@ class ReminderTypeSelector extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: GoogleFonts.poppins(
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: color,

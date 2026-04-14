@@ -1,14 +1,16 @@
-import 'dart:math';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/themes.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reminder_provider.dart';
 import '../../providers/summary_provider.dart';
-import 'widgets/summary_card.dart';
 import '../widgets/ocean_animations.dart';
+import 'widgets/summary_card.dart';
+import 'widgets/home_header.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,62 +19,32 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   bool _showGalleryPanel = false;
   bool _showVoicePanel = false;
-  late AnimationController _fabController;
-  late Animation<double> _fabAnimation;
 
   @override
   void initState() {
     super.initState();
-    _fabController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _fabAnimation = CurvedAnimation(
-      parent: _fabController,
-      curve: Curves.easeOutBack,
-    );
-    _fabController.forward();
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadSummaries();
     });
   }
 
-  @override
-  void dispose() {
-    _fabController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        _loadSummaries();
-      }
-    });
-  }
-
   void _loadSummaries() {
     final authProvider = context.read<AuthProvider>();
     final summaryProvider = context.read<SummaryProvider>();
-    debugPrint('=== HOME SCREEN: Loading summaries for user: ${authProvider.userId}');
+    
     if (authProvider.userId != null) {
       summaryProvider.loadSummaries(authProvider.userId!);
-    } else {
-      debugPrint('=== HOME SCREEN: No user ID found!');
     }
   }
 
   Future<void> _refreshSummaries() async {
     final authProvider = context.read<AuthProvider>();
     final summaryProvider = context.read<SummaryProvider>();
-    debugPrint('Refreshing summaries for user: ${authProvider.userId}');
+    
     if (authProvider.userId != null) {
       await summaryProvider.loadSummaries(authProvider.userId!);
     }
@@ -80,387 +52,260 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final offWhite = const Color(0xFFF8F9FA);
-    final teal = Colors.teal;
-
     return Scaffold(
-      backgroundColor: offWhite,
-      body: OceanBackground(
-        primaryColor: teal,
-        waveHeight: 100,
-        showBubbles: true,
-        child: SafeArea(
-          child: Stack(
+      backgroundColor: AppTheme.backgroundBeachSand,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = constraints.maxWidth;
+          final isSmallScreen = screenWidth < 380;
+          
+          return Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 30),
-                    Row(
-                      children: [
-                        Expanded(child: _buildHeader(teal)),
-                        Row(
-                          children: [
-                            _buildRemindersButton(teal),
-                            const SizedBox(width: 8),
-                            _buildIconButton(
-                              icon: Icons.refresh,
-                              teal: teal,
-                              onTap: _refreshSummaries,
-                            ),
-                            const SizedBox(width: 8),
-                            _buildIconButton(
-                              icon: Icons.person_outline,
-                              teal: teal,
-                              onTap: () => context.pushNamed('profile'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Expanded(
-                      child: Consumer<SummaryProvider>(
-                        builder: (context, summaryProvider, _) {
-                          if (summaryProvider.isLoading) {
-                            return Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  _buildLoadingIndicator(teal),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Loading your ocean of notes...',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-
-                          if (summaryProvider.summaries.isEmpty) {
-                            return _buildEmptyState(teal);
-                          }
-
-                          return RefreshIndicator(
-                            onRefresh: _refreshSummaries,
-                            color: teal,
-                            child: GridView.builder(
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 18,
-                                crossAxisSpacing: 18,
-                                childAspectRatio: 0.95,
-                              ),
-                              itemCount: summaryProvider.summaries.length,
-                              itemBuilder: (context, index) {
-                                final summary = summaryProvider.summaries[index];
-                                return TweenAnimationBuilder<double>(
-                                  tween: Tween(begin: 0.0, end: 1.0),
-                                  duration: Duration(milliseconds: 300 + (index * 50)),
-                                  curve: Curves.easeOutBack,
-                                  builder: (context, value, child) {
-                                    return Transform.scale(
-                                      scale: value,
-                                      child: Opacity(
-                                        opacity: value,
-                                        child: child,
-                                      ),
-                                    );
-                                  },
-                                  child: SummaryCard(
-                                    summary: summary,
-                                    onTap: () {
-                                      summaryProvider.setCurrentSummary(summary);
-                                      context.pushNamed('summary');
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+              Positioned.fill(
+                child: OceanBackground(
+                  primaryColor: AppTheme.primaryOceanTeal,
+                  waveHeight: isSmallScreen ? 50 : 70,
+                  showBubbles: true,
                 ),
               ),
+              
+              // Content
+              _buildContent(context, isSmallScreen),
+              
+              // Floating Bottom Bar
               Positioned(
-                left: 20,
-                right: 20,
-                bottom: 20,
-                child: _buildFloatingBottomBar(teal),
+                left: 0,
+                right: 0,
+                bottom: 16,
+                child: FloatingBottomBar(
+                  isGalleryActive: _showGalleryPanel,
+                  isVoiceActive: _showVoicePanel,
+                  onImageTap: () {
+                    setState(() {
+                      _showGalleryPanel = !_showGalleryPanel;
+                      _showVoicePanel = false;
+                    });
+                  },
+                  onVoiceTap: () {
+                    setState(() {
+                      _showVoicePanel = !_showVoicePanel;
+                      _showGalleryPanel = false;
+                    });
+                  },
+                  onAddTap: () => context.pushNamed('summarize'),
+                ),
               ),
-              if (_showGalleryPanel) 
-                _buildGalleryPanel(teal),
-              if (_showVoicePanel) 
-                _buildVoicePanel(teal),
+              
+              // Panels
+              if (_showGalleryPanel) _buildGalleryPanel(context),
+              if (_showVoicePanel) _buildVoicePanel(context),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(MaterialColor teal) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [teal.shade400, teal.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: teal.withValues(alpha: 0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.waves,
-            color: Colors.white,
-            size: 28,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _AnimatedTitle(),
-            Text(
-              'Your AI-powered note companion',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoadingIndicator(MaterialColor teal) {
-    return SizedBox(
-      width: 60,
-      height: 60,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0, end: 1),
-        duration: const Duration(seconds: 2),
-        builder: (context, value, child) {
-          return CustomPaint(
-            painter: _OceanLoadingPainter(
-              progress: value,
-              color: teal,
-            ),
           );
         },
       ),
     );
   }
 
-  Widget _AnimatedTitle() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.95, end: 1.0),
-      duration: const Duration(milliseconds: 1500),
-      curve: Curves.easeInOut,
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: Container(
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.teal.withValues(alpha: 0.15),
-                  blurRadius: 8,
-                  spreadRadius: 0,
-                ),
-              ],
+  Widget _buildContent(BuildContext context, bool isSmallScreen) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Consumer<SummaryProvider>(
+      builder: (context, summaryProvider, _) {
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // Sliver Header with shrink behavior
+            HomeHeader(
+              onRemindersTap: () => context.pushNamed('reminders'),
+              onRefreshTap: _refreshSummaries,
+              onProfileTap: () => context.pushNamed('profile'),
+              activeRemindersCount: 
+                  context.watch<ReminderProvider>().activeReminders.length,
             ),
-            child: Text(
-              "NEURANOTE",
-              style: GoogleFonts.poppins(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal.shade800,
-                letterSpacing: 1.5,
-              ),
+            
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 16),
             ),
-          ),
+            
+            // Content
+            if (summaryProvider.isLoading)
+              SliverFillRemaining(
+                child: _buildLoadingState(colorScheme, textTheme),
+              )
+            else if (summaryProvider.summaries.isEmpty)
+              SliverFillRemaining(
+                child: _buildEmptyState(context, colorScheme, textTheme, isSmallScreen),
+              )
+            else
+              _buildSummaryGrid(summaryProvider, isSmallScreen),
+            
+            // Bottom padding for FAB
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 100),
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _buildEmptyState(MaterialColor teal) {
+  Widget _buildSummaryGrid(SummaryProvider summaryProvider, bool isSmallScreen) {
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16 : 24),
+      sliver: SliverGrid(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: isSmallScreen ? 2 : 3,
+          mainAxisSpacing: isSmallScreen ? 8 : 16,
+          crossAxisSpacing: isSmallScreen ? 8 : 16,
+          childAspectRatio: 0.85,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final summary = summaryProvider.summaries[index];
+            return TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: Duration(milliseconds: 300 + (index * 50)),
+              curve: Curves.easeOutBack,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value.clamp(0.0, 1.0),
+                  child: Transform.scale(
+                    scale: value.clamp(0.8, 1.0),
+                    child: child,
+                  ),
+                );
+              },
+              child: SummaryCard(
+                summary: summary,
+                onTap: () {
+                  summaryProvider.setCurrentSummary(summary);
+                  context.pushNamed('summary');
+                },
+              ),
+            );
+          },
+          childCount: summaryProvider.summaries.length,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState(ColorScheme colorScheme, TextTheme textTheme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          FloatingElement(
-            floatDistance: 6,
-            child: Container(
-              padding: const EdgeInsets.all(30),
-              decoration: BoxDecoration(
-                color: teal.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.note_add_outlined,
-                size: 70,
-                color: teal.withValues(alpha: 0.5),
-              ),
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: CircularProgressIndicator(
+              color: AppTheme.primaryOceanTeal,
+              strokeWidth: 3,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Text(
-            'Start Your Journey',
-            style: GoogleFonts.poppins(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: teal.shade800,
+            'Loading your notes...',
+            style: textTheme.bodyMedium?.copyWith(
+              color: AppTheme.textSecondary,
             ),
           ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Text(
-              'Tap the + button to create your first ocean of notes',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.grey.shade600,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, ColorScheme colorScheme, TextTheme textTheme, bool isSmallScreen) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(isSmallScreen ? 24 : 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Animated Icon
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.85, end: 1.0),
+              duration: const Duration(milliseconds: 1500),
+              curve: Curves.easeInOut,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: child,
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.all(isSmallScreen ? 24 : 28),
+                decoration: BoxDecoration(
+                  color: AppTheme.glassSoftTeal.withValues(alpha: 0.3),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.note_add_outlined,
+                  size: isSmallScreen ? 48 : 56,
+                  color: AppTheme.primaryOceanTeal.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
+            
+            SizedBox(height: isSmallScreen ? 16 : 24),
+            
+            Text(
+              'Start Your Journey',
+              style: textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            
+            const SizedBox(height: 8),
+            
+            Text(
+              'Tap the + button to create your first note',
+              style: textTheme.bodyMedium?.copyWith(
+                color: AppTheme.textSecondary,
+                height: 1.6,
               ),
               textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildFeatureHint(Icons.image, 'Image', teal),
-              const SizedBox(width: 20),
-              _buildFeatureHint(Icons.mic, 'Voice', teal),
-              const SizedBox(width: 20),
-              _buildFeatureHint(Icons.notifications, 'Remind', teal),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureHint(IconData icon, String label, MaterialColor teal) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: teal.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Icon(icon, color: teal, size: 24),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFloatingBottomBar(MaterialColor teal) {
-    return Container(
-      height: 70,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(40),
-        boxShadow: [
-          BoxShadow(
-            color: teal.withOpacity(0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _AnimatedIconButton(
-            icon: Icons.add_photo_alternate,
-            label: 'Image',
-            teal: teal,
-            onTap: () {
-              setState(() {
-                _showGalleryPanel = !_showGalleryPanel;
-                _showVoicePanel = false;
-              });
-            },
-            isActive: _showGalleryPanel,
-          ),
-          ScaleTransition(
-            scale: _fabAnimation,
-            child: PulsingOceanButton(
-              onPressed: () => context.pushNamed('summarize'),
-              color: teal,
-              size: 56,
-              child: const Icon(Icons.add, color: Colors.white, size: 30),
+            
+            SizedBox(height: isSmallScreen ? 24 : 32),
+            
+            // Feature Hints
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _FeatureHint(icon: Icons.image, label: 'Image'),
+                SizedBox(width: isSmallScreen ? 8 : 16),
+                _FeatureHint(icon: Icons.mic, label: 'Voice'),
+                SizedBox(width: isSmallScreen ? 8 : 16),
+                _FeatureHint(icon: Icons.notifications, label: 'Remind'),
+              ],
             ),
-          ),
-          _AnimatedIconButton(
-            icon: Icons.mic,
-            label: 'Voice',
-            teal: teal,
-            onTap: () {
-              setState(() {
-                _showVoicePanel = !_showVoicePanel;
-                _showGalleryPanel = false;
-              });
-            },
-            isActive: _showVoicePanel,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildGalleryPanel(MaterialColor teal) {
-    return _BottomExpandablePanel(
+  Widget _buildGalleryPanel(BuildContext context) {
+    return _ExpandablePanel(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.image, color: teal, size: 20),
+              Icon(Icons.image, color: AppTheme.primaryOceanTeal, size: 18),
               const SizedBox(width: 8),
               Text(
                 'Add from Image',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: teal.shade700,
+                  color: AppTheme.textPrimary,
                 ),
               ),
             ],
@@ -469,36 +314,43 @@ class _HomeScreenState extends State<HomeScreen>
           Row(
             children: [
               Expanded(
-                child: _buildMediaButton(
-                  icon: Icons.photo_library,
-                  label: "Gallery",
-                  teal: teal,
-                  onTap: () {
-                    setState(() => _showGalleryPanel = false);
-                    context.pushNamed('summarize');
-                  },
+                child: SizedBox(
+                  height: 40,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      setState(() => _showGalleryPanel = false);
+                      context.pushNamed('summarize');
+                    },
+                    icon: const Icon(Icons.photo_library, size: 16),
+                    label: const Text('Gallery'),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
-                child: _buildMediaButton(
-                  icon: Icons.camera_alt,
-                  label: "Camera",
-                  teal: teal,
-                  onTap: () {
-                    setState(() => _showGalleryPanel = false);
-                    context.pushNamed('summarize');
-                  },
+                child: SizedBox(
+                  height: 40,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() => _showGalleryPanel = false);
+                      context.pushNamed('summarize');
+                    },
+                    icon: const Icon(Icons.camera_alt, size: 16),
+                    label: const Text('Camera'),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           TextButton(
             onPressed: () => setState(() => _showGalleryPanel = false),
             child: Text(
               "Cancel",
-              style: GoogleFonts.poppins(color: Colors.grey.shade600),
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                color: AppTheme.textSecondary,
+              ),
             ),
           ),
         ],
@@ -506,52 +358,51 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildVoicePanel(MaterialColor teal) {
-    return _BottomExpandablePanel(
+  Widget _buildVoicePanel(BuildContext context) {
+    return _ExpandablePanel(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.mic, color: teal, size: 20),
+              Icon(Icons.mic, color: AppTheme.primaryOceanTeal, size: 18),
               const SizedBox(width: 8),
               Text(
                 'Voice Recording',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: teal.shade700,
+                  color: AppTheme.textPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          FloatingElement(
-            floatDistance: 5,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    teal.withValues(alpha: 0.2),
-                    teal.withValues(alpha: 0.05),
-                  ],
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.graphic_eq, color: teal, size: 48),
-            ),
-          ),
           const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [
+                  AppTheme.primaryOceanTeal.withValues(alpha: 0.1),
+                  AppTheme.primaryOceanTeal.withValues(alpha: 0.03),
+                ],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.graphic_eq, color: AppTheme.primaryOceanTeal, size: 36),
+          ),
+          const SizedBox(height: 12),
           Text(
             "Tap to start recording",
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade600,
+            style: TextStyle(
+              fontFamily: 'Satoshi',
+              fontSize: 14,
+              color: AppTheme.textSecondary,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -559,24 +410,19 @@ class _HomeScreenState extends State<HomeScreen>
                 onPressed: () => setState(() => _showVoicePanel = false),
                 child: Text(
                   "Cancel",
-                  style: GoogleFonts.poppins(color: Colors.grey.shade600),
+                  style: TextStyle(color: AppTheme.textSecondary),
                 ),
               ),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() => _showVoicePanel = false);
-                  context.pushNamed('summarize');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: teal,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              const SizedBox(width: 12),
+              SizedBox(
+                height: 36,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() => _showVoicePanel = false);
+                    context.pushNamed('summarize');
+                  },
+                  child: const Text("Start Recording"),
                 ),
-                child: Text("Start Recording", style: GoogleFonts.poppins()),
               ),
             ],
           ),
@@ -584,192 +430,74 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
-
-  Widget _buildMediaButton({
-    required IconData icon,
-    required String label,
-    required MaterialColor teal,
-    required VoidCallback onTap,
-  }) {
-    return ElevatedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: teal,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIconButton({
-    required IconData icon,
-    required MaterialColor teal,
-    required VoidCallback onTap,
-    bool float = false,
-  }) {
-    final button = GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Icon(icon, color: teal, size: 22),
-      ),
-    );
-    
-    if (float) {
-      return FloatingElement(
-        floatDistance: 4,
-        child: button,
-      );
-    }
-    return button;
-  }
-
-  Widget _buildRemindersButton(MaterialColor teal) {
-    return Consumer<ReminderProvider>(
-      builder: (context, provider, _) {
-        final activeCount = provider.activeReminders.length;
-        
-        return GestureDetector(
-          onTap: () => context.pushNamed('reminders'),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: teal.withValues(alpha: 0.15),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(Icons.notifications_outlined, color: teal, size: 24),
-              ),
-              if (activeCount > 0)
-                Positioned(
-                  right: -4,
-                  top: -4,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    child: Text(
-                      activeCount > 9 ? '9+' : activeCount.toString(),
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 }
 
-class _AnimatedIconButton extends StatelessWidget {
+class _FeatureHint extends StatelessWidget {
   final IconData icon;
   final String label;
-  final MaterialColor teal;
-  final VoidCallback onTap;
-  final bool isActive;
 
-  const _AnimatedIconButton({
-    required this.icon,
-    required this.label,
-    required this.teal,
-    required this.onTap,
-    required this.isActive,
-  });
+  const _FeatureHint({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? teal.withOpacity(0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isActive ? teal : teal.shade400,
-              size: 26,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                color: isActive ? teal : Colors.grey,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryOceanTeal.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Icon(icon, color: AppTheme.primaryOceanTeal, size: 20),
         ),
-      ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Satoshi',
+            fontSize: 11,
+            color: AppTheme.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _BottomExpandablePanel extends StatelessWidget {
+class _ExpandablePanel extends StatelessWidget {
   final Widget child;
-  const _BottomExpandablePanel({required this.child});
+
+  const _ExpandablePanel({required this.child});
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: 20,
-      right: 20,
-      bottom: 100,
+      left: 16,
+      right: 16,
+      bottom: 90,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutBack,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.4),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -779,66 +507,189 @@ class _BottomExpandablePanel extends StatelessWidget {
   }
 }
 
-class _OceanLoadingPainter extends CustomPainter {
-  final double progress;
-  final MaterialColor color;
+class FloatingBottomBar extends StatelessWidget {
+  final bool isGalleryActive;
+  final bool isVoiceActive;
+  final VoidCallback onImageTap;
+  final VoidCallback onVoiceTap;
+  final VoidCallback onAddTap;
 
-  _OceanLoadingPainter({required this.progress, required this.color});
+  const FloatingBottomBar({
+    super.key,
+    required this.isGalleryActive,
+    required this.isVoiceActive,
+    required this.onImageTap,
+    required this.onVoiceTap,
+    required this.onAddTap,
+  });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 5;
-
-    final bgPaint = Paint()
-      ..color = color.withOpacity(0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawCircle(center, radius, bgPaint);
-
-    final progressPaint = Paint()
-      ..shader = SweepGradient(
-        startAngle: -1.57,
-        endAngle: 4.71,
-        colors: [
-          color.withOpacity(0.5),
-          color,
-          color.withOpacity(0.5),
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          // Glassmorphic bar
+          Container(
+            height: 70,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.4),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryOceanTeal.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _BottomBarButton(
+                        icon: Icons.image_outlined,
+                        isActive: isGalleryActive,
+                        onTap: onImageTap,
+                      ),
+                      _BottomBarButton(
+                        icon: Icons.mic_none,
+                        isActive: isVoiceActive,
+                        onTap: onVoiceTap,
+                      ),
+                      const SizedBox(width: 56),
+                      const SizedBox(width: 24),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Wave Notch FAB
+          Positioned(
+            bottom: 20,
+            child: _WaveNotchFAB(onTap: onAddTap),
+          ),
         ],
-      ).createShader(Rect.fromCircle(center: center, radius: radius))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -1.57,
-      progress * 6.28,
-      false,
-      progressPaint,
+      ),
     );
+  }
+}
 
-    final wavePaint = Paint()
-      ..color = color.withOpacity(0.8)
-      ..style = PaintingStyle.fill;
+class _WaveNotchFAB extends StatelessWidget {
+  final VoidCallback onTap;
 
-    final path = Path();
-    path.moveTo(center.dx - 10, center.dy);
-    for (var i = 0; i <= 20; i++) {
-      final x = center.dx - 10 + i;
-      final y = center.dy + sin((i * 0.5) + (progress * 6.28)) * 5;
-      path.lineTo(x, y);
-    }
-    path.lineTo(center.dx + 10, center.dy);
-    path.close();
+  const _WaveNotchFAB({required this.onTap});
 
-    canvas.drawCircle(center, 8, wavePaint);
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: AppTheme.actionCoral,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.actionCoral.withValues(alpha: 0.4),
+              spreadRadius: 2,
+              blurRadius: 15,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+          size: 28,
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomBarButton extends StatefulWidget {
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _BottomBarButton({
+    required this.icon,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  State<_BottomBarButton> createState() => _BottomBarButtonState();
+}
+
+class _BottomBarButtonState extends State<_BottomBarButton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutQuart),
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _OceanLoadingPainter oldDelegate) {
-    return oldDelegate.progress != progress;
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) {
+        _controller.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _controller.reverse(),
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: widget.isActive 
+                    ? AppTheme.primaryOceanTeal.withValues(alpha: 0.15)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                widget.icon,
+                color: widget.isActive ? AppTheme.primaryOceanTeal : AppTheme.textSecondary,
+                size: 24,
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

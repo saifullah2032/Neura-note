@@ -1,375 +1,489 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart';
+
+/// ============================================================================
+/// NEO-BRUTALIST OCEAN THEME
+/// ============================================================================
+/// High contrast, industrial-tactile design with Ocean color palette
+/// Features: Thick black borders, hard shadows, minimal rounding (4px)
+/// ============================================================================
 
 class AppTheme {
   AppTheme._();
 
-  static const Color oceanDeep = Color(0xFF006064);
-  static const Color oceanTeal = Color(0xFF00838F);
-  static const Color coralTeal = Color(0xFF4DB6AC);
-  static const Color skyBlue = Color(0xFFE1F5FE);
-  static const Color seaFoam = Color(0xFFB2DFDB);
-  static const Color oceanWhite = Color(0xFFF8F9FA);
-  static const Color deepNavy = Color(0xFF00363A);
+  // ============================================================================
+  // NEO-BRUTALIST OCEAN COLOR PALETTE
+  // ============================================================================
+
+  // Primary: Sky Blue
+  static const Color primarySkyBlue = Color(0xFFC6E7FF);
+
+  // Secondary/Surface: Seafoam Mist
+  static const Color secondarySeafoam = Color(0xFFD4F6FF);
+
+  // Background: Pure Salt
+  static const Color backgroundPureSalt = Color(0xFFFBFBFB);
+
+  // Accent/CTA: Sand Gold
+  static const Color accentSandGold = Color(0xFFFFDDAE);
+
+  // Stroke/Shadow: Pure Black
+  static const Color strokePureBlack = Color(0xFF000000);
+
+  // Supporting Colors
+  static const Color textBlack = Color(0xFF000000);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color error = Color(0xFFE53935);
+  static const Color warning = Color(0xFFFF9800);
+  static const Color success = Color(0xFF4CAF50);
+
+  // Legacy/Fallback
+  static const Color darkGrey = Color(0xFF333333);
+  static const Color lightGrey = Color(0xFFEEEEEE);
+
+  // ============================================================================
+  // ANIMATION CURVES
+  // ============================================================================
+
+  static const Curve brutalistSnap = Curves.easeInOut;
+  static const Curve heavyPress = Curves.easeOutQuart;
+
+  // ============================================================================
+  // TYPOGRAPHY - SYNE (Headlines) & DM SANS (Body)
+  // ============================================================================
+
+  static TextTheme get _neoBrutalistTextTheme {
+    return TextTheme(
+      // DISPLAY - Syne (Black, Uppercase, Hard)
+      displayLarge: _syne(57, FontWeight.w900),
+      displayMedium: _syne(45, FontWeight.w900),
+      displaySmall: _syne(36, FontWeight.w900),
+
+      // HEADLINES - Syne (Black, Uppercase, Hard)
+      headlineLarge: _syne(32, FontWeight.w900),
+      headlineMedium: _syne(28, FontWeight.w900),
+      headlineSmall: _syne(24, FontWeight.w900),
+
+      // TITLES - Syne/DM Sans (Bold)
+      titleLarge: _syne(22, FontWeight.w900),
+      titleMedium: _dmSans(16, FontWeight.w700),
+      titleSmall: _dmSans(14, FontWeight.w700),
+
+      // BODY - DM Sans (Bold, Heavy Weight)
+      bodyLarge: _dmSans(16, FontWeight.w700),
+      bodyMedium: _dmSans(14, FontWeight.w700),
+      bodySmall: _dmSans(12, FontWeight.w700),
+
+      // LABELS - DM Sans (Bold)
+      labelLarge: _dmSans(14, FontWeight.w700),
+      labelMedium: _dmSans(12, FontWeight.w700),
+      labelSmall: _dmSans(11, FontWeight.w700),
+    );
+  }
+
+  // Syne - For Headlines (Black, Uppercase, Hard Kerning)
+  static TextStyle _syne(double fontSize, FontWeight fontWeight) {
+    return TextStyle(
+      fontFamily: 'Syne',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: textBlack,
+      height: 1.1,
+      letterSpacing: -0.5,
+    );
+  }
+
+  // DM Sans - For Body (Bold)
+  static TextStyle _dmSans(double fontSize, FontWeight fontWeight) {
+    return TextStyle(
+      fontFamily: 'DM Sans',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: textBlack,
+      height: 1.4,
+      letterSpacing: 0.2,
+    );
+  }
+
+  // ============================================================================
+  // COLOR SCHEME - NEO-BRUTALIST OCEAN
+  // ============================================================================
+
+  static const ColorScheme _lightColorScheme = ColorScheme(
+    brightness: Brightness.light,
+    primary: primarySkyBlue, // #C6E7FF
+    onPrimary: textBlack,
+    primaryContainer: secondarySeafoam,
+    onPrimaryContainer: textBlack,
+    secondary: secondarySeafoam, // #D4F6FF
+    onSecondary: textBlack,
+    secondaryContainer: accentSandGold,
+    onSecondaryContainer: textBlack,
+    tertiary: accentSandGold, // #FFDDAE
+    onTertiary: textBlack,
+    tertiaryContainer: primarySkyBlue,
+    onTertiaryContainer: textBlack,
+    error: error,
+    onError: white,
+    errorContainer: Color(0xFFFFE5E5),
+    onErrorContainer: error,
+    surface: backgroundPureSalt, // #FBFBFB
+    onSurface: textBlack,
+    surfaceContainerHighest: backgroundPureSalt,
+    onSurfaceVariant: darkGrey,
+    outline: strokePureBlack,
+    outlineVariant: lightGrey,
+    shadow: strokePureBlack,
+    scrim: Color(0xFF000000),
+    inverseSurface: textBlack,
+    onInverseSurface: white,
+    inversePrimary: accentSandGold,
+  );
+
+  // ============================================================================
+  // PAGE TRANSITIONS
+  // ============================================================================
+
+  static PageTransitionsBuilder get _neoBrutalistPageTransition {
+    return const _HardCutPageTransitionsBuilder();
+  }
+
+  // ============================================================================
+  // THEME DATA - NEO-BRUTALIST OCEAN
+  // ============================================================================
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: _lightColorScheme,
-      textTheme: _oceanTextTheme,
-      appBarTheme: _oceanAppBarTheme,
-      elevatedButtonTheme: _oceanElevatedButtonTheme,
-      outlinedButtonTheme: _oceanOutlinedButtonTheme,
-      textButtonTheme: _oceanTextButtonTheme,
-      inputDecorationTheme: _oceanInputDecorationTheme,
-      cardTheme: _oceanCardTheme,
-      floatingActionButtonTheme: _oceanFabTheme,
-      bottomNavigationBarTheme: _oceanBottomNavTheme,
-      snackBarTheme: _oceanSnackBarTheme,
-      dialogTheme: _oceanDialogTheme,
-      dividerTheme: _oceanDividerTheme,
-      scaffoldBackgroundColor: oceanWhite,
-    );
-  }
-
-  static ThemeData get darkTheme {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      colorScheme: _darkColorScheme,
-      textTheme: _oceanTextTheme,
-      scaffoldBackgroundColor: const Color(0xFF0D1F22),
-    );
-  }
-
-  static const ColorScheme _lightColorScheme = ColorScheme(
-    brightness: Brightness.light,
-    primary: oceanDeep,
-    onPrimary: Colors.white,
-    primaryContainer: coralTeal,
-    onPrimaryContainer: deepNavy,
-    secondary: coralTeal,
-    onSecondary: Colors.white,
-    secondaryContainer: seaFoam,
-    onSecondaryContainer: deepNavy,
-    tertiary: skyBlue,
-    onTertiary: deepNavy,
-    error: Color(0xFFE57373),
-    onError: Colors.white,
-    surface: Colors.white,
-    onSurface: deepNavy,
-    surfaceContainerHighest: oceanWhite,
-    onSurfaceVariant: Color(0xFF546E7A),
-    outline: Color(0xFFB0BEC5),
-    shadow: Color(0x33000000),
-  );
-
-  static const ColorScheme _darkColorScheme = ColorScheme(
-    brightness: Brightness.dark,
-    primary: coralTeal,
-    onPrimary: deepNavy,
-    primaryContainer: oceanDeep,
-    onPrimaryContainer: Colors.white,
-    secondary: seaFoam,
-    onSecondary: deepNavy,
-    error: Color(0xFFEF9A9A),
-    onError: deepNavy,
-    surface: Color(0xFF0D1F22),
-    onSurface: Colors.white,
-    surfaceContainerHighest: Color(0xFF1A2F33),
-    onSurfaceVariant: Color(0xFFB0BEC5),
-    outline: Color(0xFF37474F),
-    shadow: Colors.black,
-  );
-
-  static TextTheme get _oceanTextTheme {
-    return TextTheme(
-      displayLarge: GoogleFonts.syne(
-        fontSize: 57,
-        fontWeight: FontWeight.bold,
-        color: deepNavy,
-        letterSpacing: -0.25,
-      ),
-      displayMedium: GoogleFonts.syne(
-        fontSize: 45,
-        fontWeight: FontWeight.bold,
-        color: deepNavy,
-      ),
-      displaySmall: GoogleFonts.syne(
-        fontSize: 36,
-        fontWeight: FontWeight.bold,
-        color: deepNavy,
-      ),
-      headlineLarge: GoogleFonts.syne(
-        fontSize: 32,
-        fontWeight: FontWeight.w700,
-        color: deepNavy,
-      ),
-      headlineMedium: GoogleFonts.syne(
-        fontSize: 28,
-        fontWeight: FontWeight.w700,
-        color: deepNavy,
-      ),
-      headlineSmall: GoogleFonts.syne(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        color: deepNavy,
-      ),
-      titleLarge: GoogleFonts.dmSans(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        color: deepNavy,
-      ),
-      titleMedium: GoogleFonts.dmSans(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        color: deepNavy,
-        letterSpacing: 0.15,
-      ),
-      titleSmall: GoogleFonts.dmSans(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: deepNavy,
-        letterSpacing: 0.1,
-      ),
-      bodyLarge: GoogleFonts.dmSans(
-        fontSize: 16,
-        fontWeight: FontWeight.normal,
-        color: deepNavy,
-        letterSpacing: 0.5,
-      ),
-      bodyMedium: GoogleFonts.dmSans(
-        fontSize: 14,
-        fontWeight: FontWeight.normal,
-        color: deepNavy,
-        letterSpacing: 0.25,
-      ),
-      bodySmall: GoogleFonts.dmSans(
-        fontSize: 12,
-        fontWeight: FontWeight.normal,
-        color: Color(0xFF546E7A),
-        letterSpacing: 0.4,
-      ),
-      labelLarge: GoogleFonts.dmSans(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: deepNavy,
-        letterSpacing: 0.1,
-      ),
-      labelMedium: GoogleFonts.dmSans(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        color: Color(0xFF546E7A),
-        letterSpacing: 0.5,
-      ),
-      labelSmall: GoogleFonts.dmSans(
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
-        color: Color(0xFF78909C),
-        letterSpacing: 0.5,
+      textTheme: _neoBrutalistTextTheme,
+      scaffoldBackgroundColor: backgroundPureSalt, // #FBFBFB
+      appBarTheme: _neoBrutalistAppBarTheme,
+      elevatedButtonTheme: _neoBrutalistElevatedButtonTheme,
+      outlinedButtonTheme: _neoBrutalistOutlinedButtonTheme,
+      textButtonTheme: _neoBrutalistTextButtonTheme,
+      inputDecorationTheme: _neoBrutalistInputDecorationTheme,
+      cardTheme: _neoBrutalistCardTheme,
+      floatingActionButtonTheme: _neoBrutalistFabTheme,
+      bottomNavigationBarTheme: _neoBrutalistBottomNavTheme,
+      snackBarTheme: _neoBrutalistSnackBarTheme,
+      dialogTheme: _neoBrutalistDialogTheme,
+      dividerTheme: _neoBrutalistDividerTheme,
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _neoBrutalistPageTransition,
+          TargetPlatform.iOS: _neoBrutalistPageTransition,
+        },
       ),
     );
   }
 
-  static AppBarTheme get _oceanAppBarTheme {
-    return AppBarTheme(
+  // ============================================================================
+  // COMPONENT THEMES - NEO-BRUTALIST STYLING
+  // ============================================================================
+
+  static AppBarTheme get _neoBrutalistAppBarTheme {
+    return const AppBarTheme(
       elevation: 0,
-      scrolledUnderElevation: 2,
-      backgroundColor: Colors.transparent,
-      foregroundColor: deepNavy,
+      scrolledUnderElevation: 0,
+      backgroundColor: backgroundPureSalt,
+      foregroundColor: textBlack,
       surfaceTintColor: Colors.transparent,
-      iconTheme: const IconThemeData(color: oceanDeep),
-      titleTextStyle: GoogleFonts.syne(
+      iconTheme: IconThemeData(color: textBlack),
+      titleTextStyle: TextStyle(
+        fontFamily: 'Syne',
         fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: deepNavy,
+        fontWeight: FontWeight.w900,
+        letterSpacing: -0.5,
+        color: textBlack,
       ),
       centerTitle: false,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
     );
   }
 
-  static ElevatedButtonThemeData get _oceanElevatedButtonTheme {
+  static ElevatedButtonThemeData get _neoBrutalistElevatedButtonTheme {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: oceanDeep,
-        foregroundColor: Colors.white,
+        backgroundColor: accentSandGold, // #FFDDAE
+        foregroundColor: textBlack,
         elevation: 0,
-        shadowColor: oceanDeep.withValues(alpha: 0.4),
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+        shadowColor: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(4), // Hard corners
+          side: const BorderSide(
+            color: strokePureBlack,
+            width: 3.0, // Thick black border
+          ),
         ),
-        textStyle: GoogleFonts.dmSans(
+        textStyle: const TextStyle(
+          fontFamily: 'DM Sans',
           fontSize: 16,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
         ),
       ),
     );
   }
 
-  static OutlinedButtonThemeData get _oceanOutlinedButtonTheme {
+  static OutlinedButtonThemeData get _neoBrutalistOutlinedButtonTheme {
     return OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: oceanDeep,
-        side: BorderSide(color: oceanDeep.withValues(alpha: 0.6), width: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+        foregroundColor: textBlack,
+        side: const BorderSide(
+          color: strokePureBlack,
+          width: 3.0, // Thick black border
         ),
-        textStyle: GoogleFonts.dmSans(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4), // Hard corners
+        ),
+        textStyle: const TextStyle(
+          fontFamily: 'DM Sans',
           fontSize: 16,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
   }
 
-  static TextButtonThemeData get _oceanTextButtonTheme {
+  static TextButtonThemeData get _neoBrutalistTextButtonTheme {
     return TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: oceanDeep,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        textStyle: GoogleFonts.dmSans(
+        foregroundColor: textBlack,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        textStyle: const TextStyle(
+          fontFamily: 'DM Sans',
           fontSize: 14,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
   }
 
-  static InputDecorationTheme get _oceanInputDecorationTheme {
+  static InputDecorationTheme get _neoBrutalistInputDecorationTheme {
     return InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: secondarySeafoam, // #D4F6FF - Seafoam fill
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(4), // Hard corners
+        borderSide: const BorderSide(
+          color: strokePureBlack,
+          width: 3.0, // Thick black border
+        ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(4),
+        borderSide: const BorderSide(
+          color: strokePureBlack,
+          width: 3.0,
+        ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: oceanDeep, width: 2),
+        borderRadius: BorderRadius.circular(4),
+        borderSide: const BorderSide(
+          color: strokePureBlack,
+          width: 3.0,
+        ),
       ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFE57373), width: 1),
+      hintStyle: const TextStyle(
+        fontFamily: 'DM Sans',
+        color: darkGrey,
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
       ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFE57373), width: 2),
-      ),
-      hintStyle: GoogleFonts.dmSans(
-        color: Color(0xFFB0BEC5),
-        fontSize: 14,
-      ),
-      labelStyle: GoogleFonts.dmSans(
-        color: Color(0xFF546E7A),
-        fontSize: 14,
-      ),
-      errorStyle: GoogleFonts.dmSans(
-        color: Color(0xFFE57373),
-        fontSize: 12,
+      labelStyle: const TextStyle(
+        fontFamily: 'DM Sans',
+        color: textBlack,
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
       ),
     );
   }
 
-  static CardThemeData get _oceanCardTheme {
+  static CardThemeData get _neoBrutalistCardTheme {
     return CardThemeData(
       elevation: 0,
       shadowColor: Colors.transparent,
-      color: Colors.white,
+      color: backgroundPureSalt,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4), // Hard corners
+        side: const BorderSide(
+          color: strokePureBlack,
+          width: 3.0, // Thick black border
+        ),
       ),
       margin: const EdgeInsets.all(8),
     );
   }
 
-  static FloatingActionButtonThemeData get _oceanFabTheme {
+  static FloatingActionButtonThemeData get _neoBrutalistFabTheme {
     return const FloatingActionButtonThemeData(
-      backgroundColor: oceanDeep,
-      foregroundColor: Colors.white,
-      elevation: 4,
-      shape: CircleBorder(),
+      backgroundColor: accentSandGold, // #FFDDAE
+      foregroundColor: textBlack,
+      elevation: 0,
+      extendedPadding: EdgeInsets.symmetric(horizontal: 24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(4)),
+        side: BorderSide(
+          color: strokePureBlack,
+          width: 3.0,
+        ),
+      ),
     );
   }
 
-  static BottomNavigationBarThemeData get _oceanBottomNavTheme {
-    return BottomNavigationBarThemeData(
-      backgroundColor: Colors.white,
-      selectedItemColor: oceanDeep,
-      unselectedItemColor: Color(0xFF90A4AE),
+  static BottomNavigationBarThemeData get _neoBrutalistBottomNavTheme {
+    return const BottomNavigationBarThemeData(
+      backgroundColor: backgroundPureSalt,
+      selectedItemColor: textBlack,
+      unselectedItemColor: darkGrey,
       type: BottomNavigationBarType.fixed,
       elevation: 0,
-      selectedLabelStyle: GoogleFonts.dmSans(
+      selectedLabelStyle: TextStyle(
+        fontFamily: 'DM Sans',
         fontSize: 12,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
       ),
-      unselectedLabelStyle: GoogleFonts.dmSans(
+      unselectedLabelStyle: TextStyle(
+        fontFamily: 'DM Sans',
         fontSize: 12,
-        fontWeight: FontWeight.normal,
+        fontWeight: FontWeight.w700,
       ),
     );
   }
 
-  static SnackBarThemeData get _oceanSnackBarTheme {
+  static SnackBarThemeData get _neoBrutalistSnackBarTheme {
     return SnackBarThemeData(
-      backgroundColor: deepNavy,
-      contentTextStyle: GoogleFonts.dmSans(
-        color: Colors.white,
+      backgroundColor: accentSandGold, // #FFDDAE
+      contentTextStyle: const TextStyle(
+        fontFamily: 'DM Sans',
+        color: textBlack,
         fontSize: 14,
+        fontWeight: FontWeight.w700,
       ),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(4),
+        side: const BorderSide(
+          color: strokePureBlack,
+          width: 3.0,
+        ),
       ),
     );
   }
 
-  static DialogThemeData get _oceanDialogTheme {
+  static DialogThemeData get _neoBrutalistDialogTheme {
     return DialogThemeData(
-      backgroundColor: Colors.white,
-      elevation: 8,
+      backgroundColor: backgroundPureSalt,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4),
+        side: const BorderSide(
+          color: strokePureBlack,
+          width: 3.0,
+        ),
       ),
-      titleTextStyle: GoogleFonts.syne(
+      titleTextStyle: const TextStyle(
+        fontFamily: 'Syne',
         fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: deepNavy,
+        fontWeight: FontWeight.w900,
+        letterSpacing: -0.5,
+        color: textBlack,
       ),
-      contentTextStyle: GoogleFonts.dmSans(
-        fontSize: 14,
-        color: Color(0xFF546E7A),
+      contentTextStyle: const TextStyle(
+        fontFamily: 'DM Sans',
+        fontSize: 16,
+        height: 1.6,
+        color: darkGrey,
+        fontWeight: FontWeight.w700,
       ),
     );
   }
 
-  static DividerThemeData get _oceanDividerTheme {
+  static DividerThemeData get _neoBrutalistDividerTheme {
     return const DividerThemeData(
-      color: Color(0xFFECEFF1),
-      thickness: 1,
-      space: 1,
+      color: strokePureBlack,
+      thickness: 3.0, // Thick dividers
+      space: 16,
     );
   }
 }
 
-extension OceanThemeExtensions on BuildContext {
+// ============================================================================
+// HARD CUT PAGE TRANSITIONS (NEO-BRUTALIST MOTION)
+// ============================================================================
+
+class _HardCutPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _HardCutPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return _HardCutTransition(
+      animation: animation,
+      secondaryAnimation: secondaryAnimation,
+      child: child,
+    );
+  }
+}
+
+class _HardCutTransition extends StatelessWidget {
+  const _HardCutTransition({
+    required this.animation,
+    required this.secondaryAnimation,
+    required this.child,
+  });
+
+  final Animation<double> animation;
+  final Animation<double> secondaryAnimation;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final curvedAnimation = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeInOut,
+      reverseCurve: Curves.easeInOut,
+    );
+
+    return FadeTransition(
+      opacity: Tween<double>(begin: 0.0, end: 1.0).animate(curvedAnimation),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0.05, 0),
+          end: Offset.zero,
+        ).animate(curvedAnimation),
+        child: child,
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// THEME EXTENSIONS
+// ============================================================================
+
+extension NeoBrutalistThemeExtensions on BuildContext {
   ColorScheme get colorScheme => Theme.of(this).colorScheme;
   TextTheme get textTheme => Theme.of(this).textTheme;
-  
-  Color get primaryColor => colorScheme.primary;
-  Color get backgroundColor => colorScheme.surface;
-  Color get errorColor => colorScheme.error;
 
-  static const Color oceanDeep = AppTheme.oceanDeep;
-  static const Color coralTeal = AppTheme.coralTeal;
-  static const Color skyBlue = AppTheme.skyBlue;
-  static const Color seaFoam = AppTheme.seaFoam;
-  static const Color oceanWhite = AppTheme.oceanWhite;
+  Color get primaryColor => colorScheme.primary;
+  Color get backgroundColor => colorScheme.surfaceContainerHighest;
+
+  Color get skyBlue => AppTheme.primarySkyBlue;
+  Color get seafoam => AppTheme.secondarySeafoam;
+  Color get sandGold => AppTheme.accentSandGold;
+  Color get pureBlack => AppTheme.strokePureBlack;
 }

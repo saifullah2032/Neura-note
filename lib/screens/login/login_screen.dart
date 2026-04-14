@@ -1,13 +1,13 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rive/rive.dart' as rive;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import '../widgets/ocean_animations.dart';
+import '../../core/themes.dart';
+import '../../core/fluid_components.dart';
 import '../widgets/ocean_ui_components.dart';
+import '../widgets/swaying_coral.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
-      curve: Curves.easeOutQuart,
+      curve: AppTheme.butterSmooth,
     );
     _fadeController.forward();
   }
@@ -73,152 +73,201 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    const Color(0xFF006064).withValues(alpha: 0.08),
-                    const Color(0xFF4DB6AC).withValues(alpha: 0.05),
-                    const Color(0xFFF8F9FA),
-                  ],
+      backgroundColor: AppTheme.backgroundBeachSand,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isSmallScreen = constraints.maxWidth < 380;
+          
+          return Stack(
+            children: [
+              // Underwater Current Background
+              UnderwaterCurrentBackground(
+                child: const SizedBox.expand(),
+              ),
+              
+              // Swaying Coral - Bottom Corners
+              Positioned(
+                bottom: 0,
+                left: -20,
+                child: SwayingCoral(
+                  isLeft: true,
+                  primaryColor: AppTheme.glassSoftTeal,
+                  secondaryColor: AppTheme.primaryOceanTeal,
+                  height: isSmallScreen ? 120 : 160,
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            top: -50,
-            right: -50,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF006064).withValues(alpha: 0.15),
-                    const Color(0xFF006064).withValues(alpha: 0),
-                  ],
+              Positioned(
+                bottom: 0,
+                right: -20,
+                child: SwayingCoral(
+                  isLeft: false,
+                  primaryColor: AppTheme.glassSoftTeal,
+                  secondaryColor: AppTheme.primaryOceanTeal,
+                  height: isSmallScreen ? 120 : 160,
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: const CustomBeachWave(
-              height: 200,
-              primaryColor: Color(0xFF006064),
-              secondaryColor: Color(0xFF4DB6AC),
-            ),
-          ),
-          FadeTransition(
-            opacity: _fadeAnimation,
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 40),
-                    SizedBox(
-                      height: 160,
-                      width: 160,
-                      child: rive.RiveAnimation.asset(
-                        'assets/animations/waving.riv',
-                        fit: BoxFit.contain,
+              
+              // Main Content
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: SafeArea(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isSmallScreen ? 20 : 32,
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    OceanGlassCard(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'WELCOME',
-                            style: GoogleFonts.syne(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 3,
-                              color: const Color(0xFF006064),
+                          SizedBox(height: isSmallScreen ? 20 : 40),
+                          
+                          // Logo Animation
+                          SizedBox(
+                            height: isSmallScreen ? 110 : 140,
+                            width: isSmallScreen ? 110 : 140,
+                            child: rive.RiveAnimation.asset(
+                              'assets/animations/waving.riv',
+                              fit: BoxFit.contain,
                             ),
                           ),
-                          const SizedBox(height: 20),
-                          Container(
-                            width: 72,
-                            height: 72,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  const Color(0xFF006064),
-                                  const Color(0xFF4DB6AC),
-                                ],
-                              ),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF006064).withValues(alpha: 0.3),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 8),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Welcome Card - Glassmorphism
+                          OceanGlassCard(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 24 : 28,
+                              vertical: isSmallScreen ? 28 : 36,
+                            ),
+                            backgroundColor: AppTheme.glassSoftTeal,
+                            child: Column(
+                              children: [
+                                Text(
+                                  'WELCOME',
+                                  style: TextStyle(
+                                    fontFamily: 'ClashDisplay',
+                                    fontSize: isSmallScreen ? 20 : 22,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 3,
+                                    color: AppTheme.textPrimary,
+                                  ),
                                 ),
+                                
+                                const SizedBox(height: 16),
+                                
+                                // App Icon
+                                Container(
+                                  width: isSmallScreen ? 48 : 56,
+                                  height: isSmallScreen ? 48 : 56,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [AppTheme.actionCoral, AppTheme.glassLightPeach],
+                                    ),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppTheme.actionCoral.withValues(alpha: 0.3),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(
+                                    Icons.auto_awesome, 
+                                    size: isSmallScreen ? 24 : 28, 
+                                    color: Colors.white
+                                  ),
+                                ),
+                                
+                                const SizedBox(height: 12),
+                                
+                                Text(
+                                  'NeuraNote AI',
+                                  style: TextStyle(
+                                    fontFamily: 'ClashDisplay',
+                                    fontSize: isSmallScreen ? 18 : 20,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.5,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                                
+                                const SizedBox(height: 20),
+                                
+                                // Login Button - 10% CORAL CTA
+                                if (_isSigningIn)
+                                  SizedBox(
+                                    height: 48,
+                                    width: 48,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppTheme.actionCoral,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 52,
+                                    child: ElevatedButton(
+                                      onPressed: () => _signInWithGoogle(context),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.actionCoral,
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.login, size: 20),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Continue with Google',
+                                            style: TextStyle(
+                                              fontFamily: 'Satoshi',
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
-                            child: const Icon(Icons.auto_awesome, size: 36, color: Colors.white),
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'NeuraNote AI',
-                            style: GoogleFonts.syne(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF00363A),
-                            ),
-                          ),
+                          
                           const SizedBox(height: 24),
-                          if (_isSigningIn)
-                            const SizedBox(
-                              height: 48,
-                              width: 48,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF006064)),
-                              ),
-                            )
-                          else
-                            OceanButton(
-                              text: 'Continue with Google',
-                              icon: Icons.login,
-                              width: double.infinity,
-                              onPressed: () => _signInWithGoogle(context),
+                          
+                          // Tagline
+                          Text(
+                            'Summarize your world — through images and voice',
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 14,
+                              height: 1.6,
+                              color: AppTheme.textSecondary,
                             ),
+                            textAlign: TextAlign.center,
+                          ),
+                          
+                          SizedBox(height: isSmallScreen ? 40 : 60),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    Text(
-                      'Summarize your world — through images and voice',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 14,
-                        color: const Color(0xFF546E7A),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 60),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

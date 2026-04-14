@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/themes.dart';
+import '../../core/fluid_components.dart';
 import '../../model/reminder_model.dart';
 import '../../providers/reminder_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -19,9 +20,6 @@ class RemindersScreen extends StatefulWidget {
 class _RemindersScreenState extends State<RemindersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
-  final Color _offWhite = const Color(0xFFF8F9FA);
-  final Color _teal = Colors.teal;
 
   @override
   void initState() {
@@ -47,26 +45,30 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     return Scaffold(
-      backgroundColor: _offWhite,
+      backgroundColor: colorScheme.surfaceContainerHighest,
       body: OceanBackground(
-        primaryColor: _teal,
+        primaryColor: colorScheme.primary,
         waveHeight: 80,
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
-              _buildTabBar(),
-              Expanded(child: _buildTabContent()),
+              _buildHeader(context, colorScheme, textTheme),
+              _buildTabBar(colorScheme, textTheme),
+              Expanded(child: _buildTabContent(colorScheme, textTheme)),
             ],
           ),
         ),
       ),
-      floatingActionButton: _buildFAB(),
+      floatingActionButton: _buildFAB(colorScheme, textTheme),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       child: Row(
@@ -76,26 +78,25 @@ class _RemindersScreenState extends State<RemindersScreen>
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: _teal.withOpacity(0.08),
+                    color: colorScheme.primary.withValues(alpha: 0.08),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: Icon(Icons.arrow_back, color: _teal, size: 24),
+              child: Icon(Icons.arrow_back, color: colorScheme.primary, size: 24),
             ),
           ),
           const SizedBox(width: 16),
           Text(
             "REMINDERS",
-            style: GoogleFonts.poppins(
-              fontSize: 22,
+            style: textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.teal.shade800,
+              color: colorScheme.primary,
               letterSpacing: 1.5,
             ),
           ),
@@ -105,15 +106,14 @@ class _RemindersScreenState extends State<RemindersScreen>
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _teal.withOpacity(0.1),
+                  color: colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '${provider.activeReminders.length} active',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
+                  style: textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colors.teal.shade700,
+                    color: colorScheme.primary,
                   ),
                 ),
               );
@@ -124,15 +124,15 @@ class _RemindersScreenState extends State<RemindersScreen>
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildTabBar(ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: _teal.withOpacity(0.05),
+            color: colorScheme.primary.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -141,20 +141,18 @@ class _RemindersScreenState extends State<RemindersScreen>
       child: TabBar(
         controller: _tabController,
         indicator: BoxDecoration(
-          color: _teal,
+          color: colorScheme.primary,
           borderRadius: BorderRadius.circular(12),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorPadding: const EdgeInsets.all(4),
-        labelColor: Colors.white,
-        unselectedLabelColor: Colors.teal.shade600,
-        labelStyle: GoogleFonts.poppins(
+        labelColor: colorScheme.onPrimary,
+        unselectedLabelColor: colorScheme.primary,
+        labelStyle: textTheme.labelLarge?.copyWith(
           fontWeight: FontWeight.w600,
-          fontSize: 13,
         ),
-        unselectedLabelStyle: GoogleFonts.poppins(
+        unselectedLabelStyle: textTheme.labelLarge?.copyWith(
           fontWeight: FontWeight.w500,
-          fontSize: 13,
         ),
         dividerColor: Colors.transparent,
         tabs: const [
@@ -166,37 +164,36 @@ class _RemindersScreenState extends State<RemindersScreen>
     );
   }
 
-  Widget _buildTabContent() {
+  Widget _buildTabContent(ColorScheme colorScheme, TextTheme textTheme) {
     return Consumer<ReminderProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading) {
           return Center(
-            child: CircularProgressIndicator(color: _teal),
+            child: CircularProgressIndicator(color: colorScheme.primary),
           );
         }
 
         if (provider.state == ReminderState.error) {
-          return _buildErrorState(provider.errorMessage ?? 'An error occurred');
+          return _buildErrorState(provider.errorMessage ?? 'An error occurred', colorScheme, textTheme);
         }
 
         return TabBarView(
           controller: _tabController,
           children: [
-            _buildRemindersList(provider.reminders),
-            _buildRemindersList(provider.calendarReminders),
-            _buildRemindersList(provider.locationReminders),
+            _buildRemindersList(provider.reminders, colorScheme, textTheme),
+            _buildRemindersList(provider.calendarReminders, colorScheme, textTheme),
+            _buildRemindersList(provider.locationReminders, colorScheme, textTheme),
           ],
         );
       },
     );
   }
 
-  Widget _buildRemindersList(List<ReminderModel> reminders) {
+  Widget _buildRemindersList(List<ReminderModel> reminders, ColorScheme colorScheme, TextTheme textTheme) {
     if (reminders.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(colorScheme, textTheme);
     }
 
-    // Group reminders by status
     final activeReminders = reminders.where((r) => r.isActive).toList();
     final completedReminders = reminders.where(
       (r) => r.status == ReminderStatus.completed || 
@@ -207,22 +204,26 @@ class _RemindersScreenState extends State<RemindersScreen>
       padding: const EdgeInsets.all(18),
       children: [
         if (activeReminders.isNotEmpty) ...[
-          _buildSectionHeader('Active', activeReminders.length),
+          _buildSectionHeader('Active', activeReminders.length, colorScheme, textTheme),
           const SizedBox(height: 12),
           ...activeReminders.map((r) => _ReminderCard(
             reminder: r,
-            onTap: () => _showReminderDetails(r),
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+            onTap: () => _showReminderDetails(r, colorScheme, textTheme),
             onComplete: () => _completeReminder(r.id),
             onDismiss: () => _dismissReminder(r.id),
           )),
         ],
         if (completedReminders.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildSectionHeader('Completed', completedReminders.length),
+          _buildSectionHeader('Completed', completedReminders.length, colorScheme, textTheme),
           const SizedBox(height: 12),
           ...completedReminders.map((r) => _ReminderCard(
             reminder: r,
-            onTap: () => _showReminderDetails(r),
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+            onTap: () => _showReminderDetails(r, colorScheme, textTheme),
             onDelete: () => _deleteReminder(r.id),
           )),
         ],
@@ -230,30 +231,32 @@ class _RemindersScreenState extends State<RemindersScreen>
     );
   }
 
-  Widget _buildSectionHeader(String title, int count) {
+  Widget _buildSectionHeader(String title, int count, ColorScheme colorScheme, TextTheme textTheme) {
     return Row(
       children: [
         Text(
           title,
-          style: GoogleFonts.poppins(
+          style: TextStyle(
+            fontFamily: 'ClashDisplay',
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.teal.shade800,
+            color: colorScheme.primary,
           ),
         ),
         const SizedBox(width: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: _teal.withOpacity(0.1),
+            color: colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-            child: Text(
+          child: Text(
             count.toString(),
-            style: GoogleFonts.poppins(
+            style: TextStyle(
+              fontFamily: 'Satoshi',
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Colors.teal.shade700,
+              color: colorScheme.primary,
             ),
           ),
         ),
@@ -261,7 +264,7 @@ class _RemindersScreenState extends State<RemindersScreen>
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ColorScheme colorScheme, TextTheme textTheme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -269,24 +272,22 @@ class _RemindersScreenState extends State<RemindersScreen>
           Icon(
             Icons.notifications_none_rounded,
             size: 80,
-            color: _teal.withOpacity(0.3),
+            color: colorScheme.primary.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
             'No reminders yet',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
+            style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: Colors.teal.shade600,
+              color: colorScheme.primary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Create summaries to detect\ndates and locations for reminders',
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey.shade600,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -294,7 +295,7 @@ class _RemindersScreenState extends State<RemindersScreen>
     );
   }
 
-  Widget _buildErrorState(String message) {
+  Widget _buildErrorState(String message, ColorScheme colorScheme, TextTheme textTheme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -302,38 +303,35 @@ class _RemindersScreenState extends State<RemindersScreen>
           Icon(
             Icons.error_outline_rounded,
             size: 60,
-            color: Colors.red.shade300,
+            color: colorScheme.error.withValues(alpha: 0.7),
           ),
           const SizedBox(height: 16),
           Text(
             'Something went wrong',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
+            style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: Colors.red.shade600,
+              color: colorScheme.error,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey.shade600,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
+          LiquidButton(
             onPressed: _loadReminders,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _teal,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            backgroundColor: colorScheme.primary,
             child: Text(
               'Retry',
-              style: GoogleFonts.poppins(color: Colors.white),
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -341,27 +339,32 @@ class _RemindersScreenState extends State<RemindersScreen>
     );
   }
 
-  Widget _buildFAB() {
+  Widget _buildFAB(ColorScheme colorScheme, TextTheme textTheme) {
     return FloatingActionButton.extended(
       onPressed: () => context.pushNamed('summarize'),
-      backgroundColor: _teal,
-      icon: const Icon(Icons.add, color: Colors.white),
+      backgroundColor: colorScheme.primary,
+      foregroundColor: colorScheme.onPrimary,
+      icon: const Icon(Icons.add),
       label: Text(
-        'New Summary',
-        style: GoogleFonts.poppins(
-          color: Colors.white,
+        'New',
+        style: textTheme.labelLarge?.copyWith(
+          color: colorScheme.onPrimary,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 
-  void _showReminderDetails(ReminderModel reminder) {
+  void _showReminderDetails(ReminderModel reminder, ColorScheme colorScheme, TextTheme textTheme) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _ReminderDetailSheet(reminder: reminder),
+      builder: (context) => _ReminderDetailSheet(
+        reminder: reminder, 
+        colorScheme: colorScheme, 
+        textTheme: textTheme
+      ),
     );
   }
 
@@ -376,26 +379,33 @@ class _RemindersScreenState extends State<RemindersScreen>
   }
 
   Future<void> _deleteReminder(String reminderId) async {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
           'Delete Reminder',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
         content: Text(
           'Are you sure you want to delete this reminder?',
-          style: GoogleFonts.poppins(),
+          style: textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: GoogleFonts.poppins(color: _teal)),
+            child: Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text('Delete', style: GoogleFonts.poppins(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.error,
+            ),
+            child: Text('Delete'),
           ),
         ],
       ),
@@ -408,9 +418,10 @@ class _RemindersScreenState extends State<RemindersScreen>
   }
 }
 
-/// Reminder Card Widget
 class _ReminderCard extends StatelessWidget {
   final ReminderModel reminder;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
   final VoidCallback onTap;
   final VoidCallback? onComplete;
   final VoidCallback? onDismiss;
@@ -418,6 +429,8 @@ class _ReminderCard extends StatelessWidget {
 
   const _ReminderCard({
     required this.reminder,
+    required this.colorScheme,
+    required this.textTheme,
     required this.onTap,
     this.onComplete,
     this.onDismiss,
@@ -427,134 +440,104 @@ class _ReminderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCalendar = reminder.isCalendarReminder;
-    final teal = Colors.teal;
     final isActive = reminder.isActive;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: teal.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: OceanCard(
+        onTap: onTap,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: (isCalendar ? Colors.blue : Colors.orange)
-                            .withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        isCalendar ? Icons.calendar_today : Icons.location_on,
-                        color: isCalendar ? Colors.blue : Colors.orange,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            reminder.title,
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade800,
-                              decoration: isActive
-                                  ? null
-                                  : TextDecoration.lineThrough,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _getSubtitle(),
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _buildStatusChip(),
-                  ],
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: (isCalendar ? Colors.blue : Colors.orange)
+                        .withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    isCalendar ? Icons.calendar_today : Icons.location_on,
+                    color: isCalendar ? Colors.blue : Colors.orange,
+                    size: 22,
+                  ),
                 ),
-                if (isActive && (onComplete != null || onDismiss != null)) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (onDismiss != null)
-                        TextButton(
-                          onPressed: onDismiss,
-                          child: Text(
-                            'Dismiss',
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey.shade600,
-                              fontSize: 13,
-                            ),
-                          ),
+                      Text(
+                        reminder.title,
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface,
+                          decoration: isActive ? null : TextDecoration.lineThrough,
                         ),
-                      if (onComplete != null)
-                        ElevatedButton(
-                          onPressed: onComplete,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: teal,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text(
-                            'Complete',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _getSubtitle(),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
+                      ),
                     ],
                   ),
-                ],
-                if (!isActive && onDelete != null) ...[
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: onDelete,
-                      icon: Icon(Icons.delete_outline, color: Colors.red.shade400),
-                      tooltip: 'Delete',
-                    ),
-                  ),
-                ],
+                ),
+                _buildStatusChip(colorScheme),
               ],
             ),
-          ),
+            if (isActive && (onComplete != null || onDismiss != null)) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (onDismiss != null)
+                    TextButton(
+                      onPressed: onDismiss,
+                      child: Text(
+                        'Dismiss',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  if (onComplete != null)
+                    LiquidButton(
+                      onPressed: onComplete,
+                      backgroundColor: colorScheme.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text(
+                        'Complete',
+                        style: TextStyle(
+                          fontFamily: 'Satoshi',
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+            if (!isActive && onDelete != null) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  onPressed: onDelete,
+                  icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                  tooltip: 'Delete',
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -569,42 +552,36 @@ class _ReminderCard extends StatelessWidget {
     return reminder.description;
   }
 
-  Widget _buildStatusChip() {
+  Widget _buildStatusChip(ColorScheme colorScheme) {
     Color bgColor;
     Color textColor;
     String label;
 
     switch (reminder.status) {
       case ReminderStatus.pending:
-        bgColor = Colors.teal.withOpacity(0.1);
-        textColor = Colors.teal;
+        bgColor = colorScheme.primary.withValues(alpha: 0.1);
+        textColor = colorScheme.primary;
         label = 'Active';
-        break;
       case ReminderStatus.triggered:
-        bgColor = Colors.orange.withOpacity(0.1);
+        bgColor = Colors.orange.withValues(alpha: 0.1);
         textColor = Colors.orange;
         label = 'Triggered';
-        break;
       case ReminderStatus.completed:
-        bgColor = Colors.green.withOpacity(0.1);
+        bgColor = Colors.green.withValues(alpha: 0.1);
         textColor = Colors.green;
         label = 'Done';
-        break;
       case ReminderStatus.dismissed:
-        bgColor = Colors.grey.withOpacity(0.1);
-        textColor = Colors.grey;
+        bgColor = colorScheme.outline.withValues(alpha: 0.1);
+        textColor = colorScheme.outline;
         label = 'Dismissed';
-        break;
       case ReminderStatus.expired:
-        bgColor = Colors.red.withOpacity(0.1);
-        textColor = Colors.red;
+        bgColor = colorScheme.error.withValues(alpha: 0.1);
+        textColor = colorScheme.error;
         label = 'Expired';
-        break;
       case ReminderStatus.cancelled:
-        bgColor = Colors.grey.withOpacity(0.1);
-        textColor = Colors.grey;
+        bgColor = colorScheme.outline.withValues(alpha: 0.1);
+        textColor = colorScheme.outline;
         label = 'Cancelled';
-        break;
     }
 
     return Container(
@@ -615,7 +592,8 @@ class _ReminderCard extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: GoogleFonts.poppins(
+        style: TextStyle(
+          fontFamily: 'Satoshi',
           fontSize: 11,
           fontWeight: FontWeight.w600,
           color: textColor,
@@ -625,18 +603,23 @@ class _ReminderCard extends StatelessWidget {
   }
 }
 
-/// Reminder Detail Bottom Sheet
 class _ReminderDetailSheet extends StatelessWidget {
   final ReminderModel reminder;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
 
-  const _ReminderDetailSheet({required this.reminder});
+  const _ReminderDetailSheet({
+    required this.reminder,
+    required this.colorScheme,
+    required this.textTheme,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: DraggableScrollableSheet(
         initialChildSize: 0.5,
@@ -656,13 +639,12 @@ class _ReminderDetailSheet extends StatelessWidget {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: colorScheme.outline.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Type indicator
                   Row(
                     children: [
                       Container(
@@ -671,7 +653,7 @@ class _ReminderDetailSheet extends StatelessWidget {
                           color: (reminder.isCalendarReminder
                                   ? Colors.blue
                                   : Colors.orange)
-                              .withOpacity(0.1),
+                              .withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -693,18 +675,16 @@ class _ReminderDetailSheet extends StatelessWidget {
                               reminder.isCalendarReminder
                                   ? 'Calendar Reminder'
                                   : 'Location Reminder',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             Text(
                               reminder.title,
-                              style: GoogleFonts.poppins(
-                                fontSize: 20,
+                              style: textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.teal.shade800,
+                                color: colorScheme.primary,
                               ),
                             ),
                           ],
@@ -713,55 +693,63 @@ class _ReminderDetailSheet extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Description
                   _buildDetailRow(
                     Icons.description_outlined,
                     'Description',
                     reminder.description,
+                    colorScheme,
+                    textTheme,
                   ),
                   const SizedBox(height: 16),
-                  // Date/Time or Location
-                  if (reminder.isCalendarReminder &&
-                      reminder.scheduledDateTime != null)
+                  if (reminder.isCalendarReminder && reminder.scheduledDateTime != null)
                     _buildDetailRow(
                       Icons.access_time,
                       'Scheduled',
                       DateFormat('EEEE, MMMM d, y\nh:mm a')
                           .format(reminder.scheduledDateTime!),
+                      colorScheme,
+                      textTheme,
                     ),
-                  if (reminder.isLocationReminder &&
-                      reminder.targetLocation != null) ...[
+                  if (reminder.isLocationReminder && reminder.targetLocation != null) ...[
                     _buildDetailRow(
                       Icons.location_on_outlined,
                       'Location',
                       reminder.targetLocation!.displayName,
+                      colorScheme,
+                      textTheme,
                     ),
                     const SizedBox(height: 16),
                     _buildDetailRow(
                       Icons.radar,
                       'Radius',
                       '${reminder.radiusInMeters.toInt()} meters',
+                      colorScheme,
+                      textTheme,
                     ),
                     const SizedBox(height: 16),
                     _buildDetailRow(
                       Icons.notifications_active_outlined,
                       'Trigger',
                       _getTriggerTypeLabel(reminder.triggerType),
+                      colorScheme,
+                      textTheme,
                     ),
                   ],
                   const SizedBox(height: 16),
-                  // Status
                   _buildDetailRow(
                     Icons.info_outline,
                     'Status',
                     _getStatusLabel(reminder.status),
+                    colorScheme,
+                    textTheme,
                   ),
                   const SizedBox(height: 16),
-                  // Created at
                   _buildDetailRow(
                     Icons.schedule_outlined,
                     'Created',
                     DateFormat('MMM d, y • h:mm a').format(reminder.createdAt),
+                    colorScheme,
+                    textTheme,
                   ),
                   if (reminder.triggeredAt != null) ...[
                     const SizedBox(height: 16),
@@ -770,6 +758,8 @@ class _ReminderDetailSheet extends StatelessWidget {
                       'Triggered',
                       DateFormat('MMM d, y • h:mm a')
                           .format(reminder.triggeredAt!),
+                      colorScheme,
+                      textTheme,
                     ),
                   ],
                   const SizedBox(height: 32),
@@ -782,11 +772,11 @@ class _ReminderDetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value) {
+  Widget _buildDetailRow(IconData icon, String label, String value, ColorScheme colorScheme, TextTheme textTheme) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey.shade600),
+        Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -794,17 +784,15 @@ class _ReminderDetailSheet extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Colors.grey.shade500,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
                 value,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey.shade800,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
                 ),
               ),
             ],

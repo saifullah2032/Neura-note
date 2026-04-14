@@ -2,21 +2,341 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart' as rive;
 
+// ============================================================================
+// NEO-BRUTALIST OCEAN UI COMPONENTS
+// ============================================================================
+// High contrast, industrial-tactile design components
+// Thick black borders (3.0 width), hard shadows, 4px border radius
+// ============================================================================
+
+// Color Constants
+const Color _pureBlack = Color(0xFF000000);
+const Color _pureSalt = Color(0xFFFBFBFB);
+const Color _skyBlue = Color(0xFFC6E7FF);
+const Color _seafoam = Color(0xFFD4F6FF);
+const Color _sandGold = Color(0xFFFFDDAE);
+
+// ============================================================================
+// NEO CONTAINER - Core Neo-Brutalist wrapper component
+// ============================================================================
+
+class NeoContainer extends StatelessWidget {
+  final Widget child;
+  final Color? backgroundColor;
+  final Color? borderColor;
+  final double borderWidth;
+  final double borderRadius;
+  final EdgeInsets padding;
+  final EdgeInsets margin;
+  final BoxShadow? shadow;
+
+  const NeoContainer({
+    super.key,
+    required this.child,
+    this.backgroundColor,
+    this.borderColor = _pureBlack,
+    this.borderWidth = 3.0,
+    this.borderRadius = 4.0,
+    this.padding = const EdgeInsets.all(16),
+    this.margin = const EdgeInsets.all(0),
+    this.shadow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: margin,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? _pureSalt,
+        border: Border.all(
+          color: borderColor ?? _pureBlack,
+          width: borderWidth,
+        ),
+        borderRadius: BorderRadius.circular(borderRadius),
+        boxShadow: shadow != null ? [shadow!] : _defaultNeoBrutalistShadow(),
+      ),
+      child: child,
+    );
+  }
+
+  static List<BoxShadow> _defaultNeoBrutalistShadow() {
+    return [
+      BoxShadow(
+        color: _pureBlack,
+        offset: const Offset(5, 5),
+        blurRadius: 0,
+        spreadRadius: 0,
+      ),
+    ];
+  }
+}
+
+// ============================================================================
+// SINKING BUTTON - Stateful Neo-Brutalist button with physical press feel
+// ============================================================================
+
+class SinkingButton extends StatefulWidget {
+  final String label;
+  final VoidCallback? onPressed;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final double? width;
+  final double? height;
+  final bool isLoading;
+  final IconData? icon;
+  final MainAxisAlignment mainAxisAlignment;
+
+  const SinkingButton({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.backgroundColor = _sandGold,
+    this.textColor = _pureBlack,
+    this.width,
+    this.height,
+    this.isLoading = false,
+    this.icon,
+    this.mainAxisAlignment = MainAxisAlignment.center,
+  });
+
+  @override
+  State<SinkingButton> createState() => _SinkingButtonState();
+}
+
+class _SinkingButtonState extends State<SinkingButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pressController;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressController = AnimationController(
+      duration: const Duration(milliseconds: 80),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _pressController.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    if (widget.onPressed == null || widget.isLoading) return;
+    setState(() => _isPressed = true);
+    _pressController.forward();
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    if (widget.onPressed == null || widget.isLoading) return;
+    _pressController.reverse();
+    setState(() => _isPressed = false);
+    widget.onPressed?.call();
+  }
+
+  void _onTapCancel() {
+    if (widget.onPressed == null || widget.isLoading) return;
+    _pressController.reverse();
+    setState(() => _isPressed = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDisabled = widget.onPressed == null || widget.isLoading;
+
+    return AnimatedBuilder(
+      animation: _pressController,
+      builder: (context, child) {
+        // Interpolate between idle (5px offset) and pressed (4px offset with translation)
+        final idleShadow = BoxShadow(
+          color: _pureBlack,
+          offset: const Offset(5, 5),
+          blurRadius: 0,
+          spreadRadius: 0,
+        );
+
+        final pressedShadow = BoxShadow(
+          color: _pureBlack,
+          offset: const Offset(4, 4),
+          blurRadius: 0,
+          spreadRadius: 0,
+        );
+
+        final shadowLerp = BoxShadow.lerp(
+          idleShadow,
+          pressedShadow,
+          _pressController.value,
+        );
+
+        final translationY = 5 - (4 * _pressController.value);
+
+        return GestureDetector(
+          onTapDown: isDisabled ? null : _onTapDown,
+          onTapUp: isDisabled ? null : _onTapUp,
+          onTapCancel: isDisabled ? null : _onTapCancel,
+          child: Transform.translate(
+            offset: Offset(0, translationY),
+            child: Container(
+              width: widget.width,
+              height: widget.height,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              decoration: BoxDecoration(
+                color: isDisabled
+                    ? Colors.grey.shade300
+                    : (widget.backgroundColor ?? _sandGold),
+                border: Border.all(
+                  color: _pureBlack,
+                  width: 3.0,
+                ),
+                borderRadius: BorderRadius.circular(4),
+                boxShadow: [shadowLerp!],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: widget.mainAxisAlignment,
+                children: [
+                  if (widget.isLoading)
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          widget.textColor ?? _pureBlack,
+                        ),
+                      ),
+                    )
+                  else ...[
+                    if (widget.icon != null) ...[
+                      Icon(
+                        widget.icon,
+                        color: isDisabled ? Colors.grey : widget.textColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Flexible(
+                      child: Text(
+                        widget.label,
+                        style: TextStyle(
+                          fontFamily: 'DM Sans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isDisabled ? Colors.grey : widget.textColor,
+                          letterSpacing: 0.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ============================================================================
+// TOKEN BADGE - High-contrast badge for AI token economy display
+// ============================================================================
+
+class TokenBadge extends StatelessWidget {
+  final int tokenCount;
+  final String? label;
+  final VoidCallback? onTap;
+  final Color? backgroundColor;
+  final bool isCompact;
+
+  const TokenBadge({
+    super.key,
+    required this.tokenCount,
+    this.label,
+    this.onTap,
+    this.backgroundColor = _sandGold,
+    this.isCompact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: NeoContainer(
+        backgroundColor: backgroundColor,
+        borderColor: _pureBlack,
+        borderWidth: 2.5,
+        borderRadius: 4.0,
+        padding: isCompact
+            ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
+            : const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shadow: BoxShadow(
+          color: _pureBlack,
+          offset: const Offset(3, 3),
+          blurRadius: 0,
+          spreadRadius: 0,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.flash_on,
+              color: _pureBlack,
+              size: isCompact ? 16 : 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '$tokenCount',
+              style: TextStyle(
+                fontFamily: 'DM Sans',
+                fontSize: isCompact ? 12 : 14,
+                fontWeight: FontWeight.w900,
+                color: _pureBlack,
+                letterSpacing: 0.2,
+              ),
+            ),
+            if (label != null) ...[
+              const SizedBox(width: 6),
+              Text(
+                label!,
+                style: TextStyle(
+                  fontFamily: 'DM Sans',
+                  fontSize: isCompact ? 11 : 13,
+                  fontWeight: FontWeight.w700,
+                  color: _pureBlack,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// OCEAN TRANSITIONS - Hard-cut page transitions
+// ============================================================================
+
 class OceanTransitions {
-  static const Curve butterSmooth = Curves.easeOutQuart;
-  static const Curve liquidIn = Curves.easeOutExpo;
-  static const Curve liquidOut = Curves.easeInExpo;
+  static const Curve brutalistSnap = Curves.easeInOut;
+  static const Curve heavyPress = Curves.easeOutQuart;
 
   static Route<T> fadeSlide<T>(Widget page, {Duration? duration}) {
     return PageRouteBuilder<T>(
       pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionDuration: duration ?? const Duration(milliseconds: 500),
-      reverseTransitionDuration: duration ?? const Duration(milliseconds: 450),
+      transitionDuration: duration ?? const Duration(milliseconds: 300),
+      reverseTransitionDuration: duration ?? const Duration(milliseconds: 250),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final curvedAnimation = CurvedAnimation(
           parent: animation,
-          curve: butterSmooth,
-          reverseCurve: liquidOut,
+          curve: brutalistSnap,
+          reverseCurve: brutalistSnap,
         );
         return FadeTransition(
           opacity: curvedAnimation,
@@ -35,17 +355,17 @@ class OceanTransitions {
   static Route<T> scaleFade<T>(Widget page, {Duration? duration}) {
     return PageRouteBuilder<T>(
       pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionDuration: duration ?? const Duration(milliseconds: 450),
-      reverseTransitionDuration: duration ?? const Duration(milliseconds: 400),
+      transitionDuration: duration ?? const Duration(milliseconds: 300),
+      reverseTransitionDuration: duration ?? const Duration(milliseconds: 250),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final curvedAnimation = CurvedAnimation(
           parent: animation,
-          curve: butterSmooth,
+          curve: brutalistSnap,
         );
         return FadeTransition(
           opacity: curvedAnimation,
           child: ScaleTransition(
-            scale: Tween<double>(begin: 0.92, end: 1.0).animate(curvedAnimation),
+            scale: Tween<double>(begin: 0.95, end: 1.0).animate(curvedAnimation),
             child: child,
           ),
         );
@@ -56,16 +376,19 @@ class OceanTransitions {
   static Route<T> oceanWave<T>(Widget page, {Duration? duration}) {
     return PageRouteBuilder<T>(
       pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionDuration: duration ?? const Duration(milliseconds: 600),
-      reverseTransitionDuration: duration ?? const Duration(milliseconds: 500),
+      transitionDuration: duration ?? const Duration(milliseconds: 400),
+      reverseTransitionDuration: duration ?? const Duration(milliseconds: 350),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final curvedAnimation = CurvedAnimation(
           parent: animation,
-          curve: butterSmooth,
+          curve: brutalistSnap,
         );
         return FadeTransition(
           opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-            CurvedAnimation(parent: animation, curve: const Interval(0.0, 0.6, curve: butterSmooth)),
+            CurvedAnimation(
+              parent: animation,
+              curve: const Interval(0.0, 0.6, curve: brutalistSnap),
+            ),
           ),
           child: SlideTransition(
             position: Tween<Offset>(
@@ -80,72 +403,9 @@ class OceanTransitions {
   }
 }
 
-class OceanGlassCard extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-  final EdgeInsetsGeometry? margin;
-  final double borderRadius;
-  final Color? backgroundColor;
-  final double blurIntensity;
-  final VoidCallback? onTap;
-
-  const OceanGlassCard({
-    super.key,
-    required this.child,
-    this.padding,
-    this.margin,
-    this.borderRadius = 24,
-    this.backgroundColor,
-    this.blurIntensity = 10,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: margin ?? const EdgeInsets.all(8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blurIntensity, sigmaY: blurIntensity),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(borderRadius),
-              child: Container(
-                padding: padding ?? const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      (backgroundColor ?? Colors.white).withValues(alpha: 0.85),
-                      (backgroundColor ?? Colors.white).withValues(alpha: 0.65),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(borderRadius),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF006064).withValues(alpha: 0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: child,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// ============================================================================
+// OCEAN BOTTOM BAR - Neo-Brutalist navigation
+// ============================================================================
 
 class OceanBottomBar extends StatelessWidget {
   final int currentIndex;
@@ -163,37 +423,29 @@ class OceanBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            height: 70,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.75),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.5),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF006064).withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, -5),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(items.length, (index) {
-                return _OceanNavItem(
-                  item: items[index],
-                  isSelected: currentIndex == index,
-                  onTap: () => onTap(index),
-                );
-              }),
-            ),
+      child: NeoContainer(
+        backgroundColor: _pureSalt,
+        borderColor: _pureBlack,
+        borderWidth: 3.0,
+        borderRadius: 4.0,
+        padding: const EdgeInsets.all(8),
+        shadow: BoxShadow(
+          color: _pureBlack,
+          offset: const Offset(5, 5),
+          blurRadius: 0,
+          spreadRadius: 0,
+        ),
+        child: SizedBox(
+          height: 70,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(items.length, (index) {
+              return _OceanNavItem(
+                item: items[index],
+                isSelected: currentIndex == index,
+                onTap: () => onTap(index),
+              );
+            }),
           ),
         ),
       ),
@@ -228,7 +480,8 @@ class _OceanNavItem extends StatefulWidget {
   State<_OceanNavItem> createState() => _OceanNavItemState();
 }
 
-class _OceanNavItemState extends State<_OceanNavItem> with SingleTickerProviderStateMixin {
+class _OceanNavItemState extends State<_OceanNavItem>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -236,7 +489,7 @@ class _OceanNavItemState extends State<_OceanNavItem> with SingleTickerProviderS
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 100),
       vsync: this,
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
@@ -267,30 +520,41 @@ class _OceanNavItemState extends State<_OceanNavItem> with SingleTickerProviderS
             mainAxisSize: MainAxisSize.min,
             children: [
               AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOutQuart,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: widget.isSelected 
-                      ? const Color(0xFF006064).withValues(alpha: 0.15)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  color: widget.isSelected ? _skyBlue : Colors.transparent,
+                  border: Border.all(
+                    color: widget.isSelected ? _pureBlack : Colors.transparent,
+                    width: 2.0,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Icon(
-                  widget.isSelected ? (widget.item.activeIcon ?? widget.item.icon) : widget.item.icon,
-                  color: widget.isSelected ? const Color(0xFF006064) : const Color(0xFF90A4AE),
+                  widget.isSelected
+                      ? (widget.item.activeIcon ?? widget.item.icon)
+                      : widget.item.icon,
+                  color: _pureBlack,
                   size: 24,
                 ),
               ),
               const SizedBox(height: 4),
               AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 250),
+                duration: const Duration(milliseconds: 200),
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: widget.isSelected ? const Color(0xFF006064) : const Color(0xFF90A4AE),
+                  fontSize: 10,
+                  fontWeight:
+                      widget.isSelected ? FontWeight.w900 : FontWeight.w700,
+                  color: _pureBlack,
+                  fontFamily: 'DM Sans',
+                  letterSpacing: 0.1,
                 ),
-                child: Text(widget.item.label),
+                child: Text(
+                  widget.item.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -300,133 +564,9 @@ class _OceanNavItemState extends State<_OceanNavItem> with SingleTickerProviderS
   }
 }
 
-class OceanButton extends StatefulWidget {
-  final String text;
-  final VoidCallback? onPressed;
-  final bool isLoading;
-  final IconData? icon;
-  final bool isOutlined;
-  final double? width;
-
-  const OceanButton({
-    super.key,
-    required this.text,
-    this.onPressed,
-    this.isLoading = false,
-    this.icon,
-    this.isOutlined = false,
-    this.width,
-  });
-
-  @override
-  State<OceanButton> createState() => _OceanButtonState();
-}
-
-class _OceanButtonState extends State<OceanButton> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _glowAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 100),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-    _glowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDisabled = widget.onPressed == null || widget.isLoading;
-    
-    return GestureDetector(
-      onTapDown: isDisabled ? null : (_) => _controller.forward(),
-      onTapUp: isDisabled ? null : (_) {
-        _controller.reverse();
-        widget.onPressed?.call();
-      },
-      onTapCancel: isDisabled ? null : () => _controller.reverse(),
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Container(
-              width: widget.width,
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-              decoration: BoxDecoration(
-                gradient: widget.isOutlined ? null : LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDisabled
-                      ? [Colors.grey.shade400, Colors.grey.shade500]
-                      : [const Color(0xFF006064), const Color(0xFF00838F)],
-                ),
-                border: widget.isOutlined
-                    ? Border.all(color: const Color(0xFF006064), width: 1.5)
-                    : null,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: isDisabled ? null : [
-                  BoxShadow(
-                    color: Color.lerp(
-                      const Color(0xFF006064).withValues(alpha: 0.3),
-                      const Color(0xFF006064).withValues(alpha: 0.5),
-                      _glowAnimation.value,
-                    )!,
-                    blurRadius: 12 + (_glowAnimation.value * 8),
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (widget.isLoading)
-                    const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  else ...[
-                    if (widget.icon != null) ...[
-                      Icon(widget.icon, color: widget.isOutlined ? const Color(0xFF006064) : Colors.white, size: 20),
-                      const SizedBox(width: 8),
-                    ],
-                    Text(
-                      widget.text,
-                      style: TextStyle(
-                        color: widget.isOutlined ? const Color(0xFF006064) : Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
+// ============================================================================
+// STAGGERED SLIDE FADE - Animation component
+// ============================================================================
 
 class StaggeredSlideFade extends StatefulWidget {
   final int index;
@@ -440,7 +580,7 @@ class StaggeredSlideFade extends StatefulWidget {
     required this.index,
     required this.child,
     this.delay = const Duration(milliseconds: 50),
-    this.duration = const Duration(milliseconds: 500),
+    this.duration = const Duration(milliseconds: 400),
     this.beginOffset = const Offset(0.0, 0.15),
   });
 
@@ -448,7 +588,8 @@ class StaggeredSlideFade extends StatefulWidget {
   State<StaggeredSlideFade> createState() => _StaggeredSlideFadeState();
 }
 
-class _StaggeredSlideFadeState extends State<StaggeredSlideFade> with SingleTickerProviderStateMixin {
+class _StaggeredSlideFadeState extends State<StaggeredSlideFade>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -460,11 +601,11 @@ class _StaggeredSlideFadeState extends State<StaggeredSlideFade> with SingleTick
       duration: widget.duration,
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutQuart),
     );
-    
+
     _slideAnimation = Tween<Offset>(
       begin: widget.beginOffset,
       end: Offset.zero,
@@ -500,20 +641,27 @@ class _StaggeredSlideFadeState extends State<StaggeredSlideFade> with SingleTick
   }
 }
 
+// ============================================================================
+// OCEAN BACKGROUND ANIMATION - Rive wave background (layered behind UI)
+// ============================================================================
+
 class OceanBackgroundAnimation extends StatefulWidget {
   final String? riveAsset;
   final Widget? child;
   final bool showWave;
+  final double opacity;
 
   const OceanBackgroundAnimation({
     super.key,
     this.riveAsset,
     this.child,
     this.showWave = true,
+    this.opacity = 0.4,
   });
 
   @override
-  State<OceanBackgroundAnimation> createState() => _OceanBackgroundAnimationState();
+  State<OceanBackgroundAnimation> createState() =>
+      _OceanBackgroundAnimationState();
 }
 
 class _OceanBackgroundAnimationState extends State<OceanBackgroundAnimation> {
@@ -532,7 +680,8 @@ class _OceanBackgroundAnimationState extends State<OceanBackgroundAnimation> {
     try {
       final file = await rive.RiveFile.asset(widget.riveAsset!);
       final artboard = file.mainArtboard;
-      final controller = rive.StateMachineController.fromArtboard(artboard, 'Wave State');
+      final controller =
+          rive.StateMachineController.fromArtboard(artboard, 'Wave State');
       if (controller != null) {
         artboard.addController(controller);
         _artboard = artboard;
@@ -549,9 +698,12 @@ class _OceanBackgroundAnimationState extends State<OceanBackgroundAnimation> {
       children: [
         if (widget.showWave && _artboard != null && _isPlaying)
           Positioned.fill(
-            child: rive.Rive(
-              artboard: _artboard!,
-              fit: BoxFit.cover,
+            child: Opacity(
+              opacity: widget.opacity,
+              child: rive.Rive(
+                artboard: _artboard!,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         if (widget.child != null) widget.child!,
@@ -559,6 +711,10 @@ class _OceanBackgroundAnimationState extends State<OceanBackgroundAnimation> {
     );
   }
 }
+
+// ============================================================================
+// OCEAN LOADING OVERLAY - Neo-Brutalist loading state
+// ============================================================================
 
 class OceanLoadingOverlay extends StatefulWidget {
   final bool isLoading;
@@ -608,33 +764,50 @@ class _OceanLoadingOverlayState extends State<OceanLoadingOverlay> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Container(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: _pureSalt.withValues(alpha: 0.85),
                 child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_isInitialized && _artboard != null)
-                        SizedBox(
-                          width: 120,
-                          height: 120,
-                          child: rive.Rive(artboard: _artboard!),
-                        )
-                      else
-                        const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF006064)),
-                        ),
-                      if (widget.message != null) ...[
-                        const SizedBox(height: 24),
-                        Text(
-                          widget.message!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF006064),
+                  child: NeoContainer(
+                    backgroundColor: _pureSalt,
+                    borderColor: _pureBlack,
+                    borderWidth: 3.0,
+                    borderRadius: 4.0,
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_isInitialized && _artboard != null)
+                          SizedBox(
+                            width: 120,
+                            height: 120,
+                            child: rive.Rive(artboard: _artboard!),
+                          )
+                        else
+                          const SizedBox(
+                            width: 120,
+                            height: 120,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                _pureBlack,
+                              ),
+                            ),
                           ),
-                        ),
+                        if (widget.message != null) ...[
+                          const SizedBox(height: 24),
+                          Text(
+                            widget.message!,
+                            style: const TextStyle(
+                              fontFamily: 'DM Sans',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: _pureBlack,
+                              letterSpacing: 0.1,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -644,6 +817,10 @@ class _OceanLoadingOverlayState extends State<OceanLoadingOverlay> {
     );
   }
 }
+
+// ============================================================================
+// OCEAN TEXT FIELD - Neo-Brutalist input
+// ============================================================================
 
 class OceanTextField extends StatefulWidget {
   final TextEditingController? controller;
@@ -675,7 +852,8 @@ class OceanTextField extends StatefulWidget {
   State<OceanTextField> createState() => _OceanTextFieldState();
 }
 
-class _OceanTextFieldState extends State<OceanTextField> with SingleTickerProviderStateMixin {
+class _OceanTextFieldState extends State<OceanTextField>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _focusAnimation;
   bool _isFocused = false;
@@ -684,11 +862,11 @@ class _OceanTextFieldState extends State<OceanTextField> with SingleTickerProvid
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
     _focusAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutQuart),
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
 
@@ -703,20 +881,17 @@ class _OceanTextFieldState extends State<OceanTextField> with SingleTickerProvid
     return AnimatedBuilder(
       animation: _focusAnimation,
       builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Color.lerp(
-                  Colors.transparent,
-                  const Color(0xFF006064).withValues(alpha: 0.15),
-                  _focusAnimation.value,
-                )!,
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        return NeoContainer(
+          backgroundColor: _seafoam, // #D4F6FF
+          borderColor: _pureBlack,
+          borderWidth: 3.0,
+          borderRadius: 4.0,
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          shadow: BoxShadow(
+            color: _pureBlack,
+            offset: Offset(4 + (_focusAnimation.value * 1), 4),
+            blurRadius: 0,
+            spreadRadius: 0,
           ),
           child: TextFormField(
             controller: widget.controller,
@@ -733,21 +908,46 @@ class _OceanTextFieldState extends State<OceanTextField> with SingleTickerProvid
               _controller.reverse();
             },
             style: const TextStyle(
+              fontFamily: 'DM Sans',
               fontSize: 16,
-              color: Color(0xFF00363A),
+              fontWeight: FontWeight.w700,
+              color: _pureBlack,
             ),
             decoration: InputDecoration(
               hintText: widget.hintText,
               labelText: widget.labelText,
+              border: InputBorder.none,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               prefixIcon: widget.prefixIcon != null
-                  ? Icon(widget.prefixIcon, color: const Color(0xFF90A4AE))
+                  ? Icon(
+                      widget.prefixIcon,
+                      color: _pureBlack,
+                      size: 20,
+                    )
                   : null,
               suffixIcon: widget.suffixIcon != null
                   ? IconButton(
-                      icon: Icon(widget.suffixIcon, color: const Color(0xFF90A4AE)),
+                      icon: Icon(
+                        widget.suffixIcon,
+                        color: _pureBlack,
+                        size: 20,
+                      ),
                       onPressed: widget.onSuffixTap,
                     )
                   : null,
+              hintStyle: const TextStyle(
+                fontFamily: 'DM Sans',
+                color: Color(0xFF999999),
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+              labelStyle: const TextStyle(
+                fontFamily: 'DM Sans',
+                color: _pureBlack,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         );
@@ -755,6 +955,10 @@ class _OceanTextFieldState extends State<OceanTextField> with SingleTickerProvid
     );
   }
 }
+
+// ============================================================================
+// OCEAN HEADER - Neo-Brutalist header component
+// ============================================================================
 
 class OceanHeader extends StatelessWidget {
   final String title;
@@ -779,25 +983,49 @@ class OceanHeader extends StatelessWidget {
       child: Row(
         children: [
           if (showBackButton)
-            IconButton(
-              onPressed: onBack ?? () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF006064)),
+            GestureDetector(
+              onTap: onBack ?? () => Navigator.of(context).pop(),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: _pureBlack,
+                    width: 2.0,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                  color: Colors.transparent,
+                ),
+                child: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: _pureBlack,
+                  size: 20,
+                ),
+              ),
             ),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
-              crossAxisAlignment: showBackButton ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  title.toUpperCase(),
+                  style: const TextStyle(
+                    fontFamily: 'Syne',
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: _pureBlack,
+                    letterSpacing: -0.5,
                   ),
                 ),
                 if (subtitle != null)
                   Text(
                     subtitle!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: const Color(0xFF546E7A),
+                    style: const TextStyle(
+                      fontFamily: 'DM Sans',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF666666),
+                      letterSpacing: 0.1,
                     ),
                   ),
               ],
@@ -810,6 +1038,10 @@ class OceanHeader extends StatelessWidget {
   }
 }
 
+// ============================================================================
+// OCEAN SHIMMER - Loading skeleton
+// ============================================================================
+
 class OceanShimmer extends StatefulWidget {
   final double width;
   final double height;
@@ -819,14 +1051,15 @@ class OceanShimmer extends StatefulWidget {
     super.key,
     this.width = double.infinity,
     this.height = 20,
-    this.borderRadius = 12,
+    this.borderRadius = 4,
   });
 
   @override
   State<OceanShimmer> createState() => _OceanShimmerState();
 }
 
-class _OceanShimmerState extends State<OceanShimmer> with SingleTickerProviderStateMixin {
+class _OceanShimmerState extends State<OceanShimmer>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -858,13 +1091,17 @@ class _OceanShimmerState extends State<OceanShimmer> with SingleTickerProviderSt
           height: widget.height,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(widget.borderRadius),
+            border: Border.all(
+              color: _pureBlack,
+              width: 2.0,
+            ),
             gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: const [
-                Color(0xFFECEFF1),
+                Color(0xFFE8E8E8),
                 Color(0xFFF5F5F5),
-                Color(0xFFECEFF1),
+                Color(0xFFE8E8E8),
               ],
               stops: [
                 _animation.value - 0.3,

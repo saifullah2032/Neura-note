@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../model/summary_model.dart';
 
-/// A chip widget that displays an extracted entity (date/time or location)
 class EntityChip extends StatelessWidget {
   final bool isDateTime;
   final DateTimeEntity? dateTimeEntity;
@@ -38,6 +36,7 @@ class EntityChip extends StatelessWidget {
     final color = isDateTime ? Colors.blue : Colors.orange;
     final icon = isDateTime ? Icons.calendar_today : Icons.location_on;
     final label = _getLabel();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Material(
       color: Colors.transparent,
@@ -47,11 +46,11 @@ class EntityChip extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.15) : color.withOpacity(0.08),
+            color: isSelected ? color.withValues(alpha: 0.15) : color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(20),
             border: isSelected
                 ? Border.all(color: color, width: 1.5)
-                : Border.all(color: color.withOpacity(0.3), width: 1),
+                : Border.all(color: color.withValues(alpha: 0.3), width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -61,7 +60,8 @@ class EntityChip extends StatelessWidget {
               Flexible(
                 child: Text(
                   label,
-                  style: GoogleFonts.poppins(
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: isDateTime ? Colors.blue.shade700 : Colors.orange.shade700,
@@ -106,7 +106,6 @@ class EntityChip extends StatelessWidget {
   }
 }
 
-/// A section widget that displays extracted entities with a header
 class EntitySection extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -123,6 +122,9 @@ class EntitySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -132,10 +134,9 @@ class EntitySection extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               title,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
+              style: textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+                color: colorScheme.onSurface,
               ),
             ),
           ],
@@ -151,7 +152,6 @@ class EntitySection extends StatelessWidget {
   }
 }
 
-/// Widget that highlights text entities within a paragraph
 class HighlightedText extends StatelessWidget {
   final String text;
   final List<DateTimeEntity> dateTimeEntities;
@@ -172,14 +172,15 @@ class HighlightedText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final style = baseStyle ??
-        GoogleFonts.poppins(
+        TextStyle(
+          fontFamily: 'Satoshi',
           fontSize: 15,
-          color: Colors.grey.shade800,
+          color: colorScheme.onSurface,
           height: 1.6,
         );
 
-    // Build spans with highlights
     final spans = _buildSpans(style);
 
     return RichText(
@@ -190,7 +191,6 @@ class HighlightedText extends StatelessWidget {
   List<InlineSpan> _buildSpans(TextStyle baseStyle) {
     final List<_HighlightRange> ranges = [];
 
-    // Collect all entity ranges
     for (final entity in dateTimeEntities) {
       final index = text.toLowerCase().indexOf(entity.originalText.toLowerCase());
       if (index != -1) {
@@ -215,10 +215,8 @@ class HighlightedText extends StatelessWidget {
       }
     }
 
-    // Sort by start position
     ranges.sort((a, b) => a.start.compareTo(b.start));
 
-    // Remove overlapping ranges
     final cleanedRanges = <_HighlightRange>[];
     for (final range in ranges) {
       if (cleanedRanges.isEmpty || range.start >= cleanedRanges.last.end) {
@@ -226,12 +224,10 @@ class HighlightedText extends StatelessWidget {
       }
     }
 
-    // Build spans
     final List<InlineSpan> spans = [];
     int currentIndex = 0;
 
     for (final range in cleanedRanges) {
-      // Add normal text before this range
       if (range.start > currentIndex) {
         spans.add(TextSpan(
           text: text.substring(currentIndex, range.start),
@@ -239,7 +235,6 @@ class HighlightedText extends StatelessWidget {
         ));
       }
 
-      // Add highlighted text
       final highlightedText = text.substring(range.start, range.end);
       final color = range.type == _HighlightType.dateTime ? Colors.blue : Colors.orange;
 
@@ -256,7 +251,7 @@ class HighlightedText extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
@@ -288,7 +283,6 @@ class HighlightedText extends StatelessWidget {
       currentIndex = range.end;
     }
 
-    // Add remaining text
     if (currentIndex < text.length) {
       spans.add(TextSpan(
         text: text.substring(currentIndex),
