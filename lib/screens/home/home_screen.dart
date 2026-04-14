@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -527,58 +525,45 @@ class FloatingBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppTheme.primarySkyBlue,
+        border: Border.all(color: Colors.black, width: 3.0),
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black,
+            offset: const Offset(5, 5),
+            blurRadius: 0,
+          ),
+        ],
+      ),
       child: Stack(
         alignment: Alignment.center,
         clipBehavior: Clip.none,
         children: [
-          // Glassmorphic bar
-          Container(
-            height: 70,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.4),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryOceanTeal.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, -5),
+          // Navigation bar content
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _BottomBarButton(
+                  icon: Icons.image_outlined,
+                  isActive: isGalleryActive,
+                  onTap: onImageTap,
                 ),
+                _BottomBarButton(
+                  icon: Icons.mic_none,
+                  isActive: isVoiceActive,
+                  onTap: onVoiceTap,
+                ),
+                SizedBox(width: 56), // Space for FAB
               ],
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _BottomBarButton(
-                        icon: Icons.image_outlined,
-                        isActive: isGalleryActive,
-                        onTap: onImageTap,
-                      ),
-                      _BottomBarButton(
-                        icon: Icons.mic_none,
-                        isActive: isVoiceActive,
-                        onTap: onVoiceTap,
-                      ),
-                      const SizedBox(width: 56),
-                      const SizedBox(width: 24),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           ),
-          // Wave Notch FAB
+          // Neo-Brutalist FAB
           Positioned(
-            bottom: 20,
+            bottom: 8,
             child: _WaveNotchFAB(onTap: onAddTap),
           ),
         ],
@@ -600,20 +585,20 @@ class _WaveNotchFAB extends StatelessWidget {
         width: 56,
         height: 56,
         decoration: BoxDecoration(
-          color: AppTheme.actionCoral,
+          color: AppTheme.accentSandGold,
+          border: Border.all(color: Colors.black, width: 3.0),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppTheme.actionCoral.withValues(alpha: 0.4),
-              spreadRadius: 2,
-              blurRadius: 15,
-              offset: const Offset(0, 4),
+              color: Colors.black,
+              offset: const Offset(4, 4),
+              blurRadius: 0,
             ),
           ],
         ),
         child: const Icon(
           Icons.add,
-          color: Colors.white,
+          color: Colors.black,
           size: 28,
         ),
       ),
@@ -647,7 +632,7 @@ class _BottomBarButtonState extends State<_BottomBarButton> with SingleTickerPro
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutQuart),
     );
   }
@@ -672,18 +657,20 @@ class _BottomBarButtonState extends State<_BottomBarButton> with SingleTickerPro
         builder: (context, child) {
           return Transform.scale(
             scale: _scaleAnimation.value,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+            child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: widget.isActive 
-                    ? AppTheme.primaryOceanTeal.withValues(alpha: 0.15)
+                    ? AppTheme.primarySkyBlue
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
+                border: widget.isActive
+                    ? Border.all(color: Colors.black, width: 2.0)
+                    : null,
+                borderRadius: BorderRadius.circular(4),
               ),
               child: Icon(
                 widget.icon,
-                color: widget.isActive ? AppTheme.primaryOceanTeal : AppTheme.textSecondary,
+                color: widget.isActive ? Colors.black : AppTheme.primarySkyBlue,
                 size: 24,
               ),
             ),

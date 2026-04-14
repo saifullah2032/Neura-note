@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/themes.dart';
-import '../../../core/fluid_components.dart';
+import '../../../screens/widgets/ocean_ui_components.dart';
 import '../../../model/summary_model.dart';
 
 class SummaryCard extends StatelessWidget {
@@ -23,11 +23,11 @@ class SummaryCard extends StatelessWidget {
     return RepaintBoundary(
       child: Hero(
         tag: 'summary_${summary.id}',
-        child: OceanCard(
+        child: GestureDetector(
           onTap: onTap,
-          padding: EdgeInsets.zero,
-          blurSigma: 8,
-          child: Column(
+          child: NeoContainer(
+            padding: EdgeInsets.zero,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Image/Audio Preview Area
@@ -38,7 +38,7 @@ class SummaryCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withValues(alpha: 0.05),
                     borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
+                      top: Radius.circular(4),
                     ),
                   ),
                   child: isImage
@@ -62,7 +62,7 @@ class SummaryCard extends StatelessWidget {
                             padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
                               color: colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(4),
                             ),
                             child: Icon(
                               isImage ? Icons.image_outlined : Icons.mic_outlined,
@@ -123,11 +123,12 @@ class SummaryCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                     ],
+                   ),
+                 ),
+               ),
             ],
+          ),
           ),
         ),
       ),
@@ -137,7 +138,7 @@ class SummaryCard extends StatelessWidget {
   Widget _buildImagePreview(ColorScheme colorScheme) {
     if (summary.thumbnailUrl != null && summary.thumbnailUrl!.isNotEmpty) {
       return ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
         child: Image.network(
           summary.thumbnailUrl!,
           fit: BoxFit.cover,
@@ -204,9 +205,9 @@ class SummaryCard extends StatelessWidget {
           if (summary.rawTranscript != null && summary.rawTranscript!.isNotEmpty)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
+               decoration: BoxDecoration(
                 color: colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
                 _formatDuration(summary.rawTranscript!.length),
@@ -243,7 +244,7 @@ class SummaryCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

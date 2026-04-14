@@ -63,7 +63,7 @@ class ProfileScreen extends StatelessWidget {
                         boxShadow: [
                           BoxShadow(
                             color: colorScheme.primary.withValues(alpha: 0.2),
-                            blurRadius: 8,
+                            blurRadius: 0,
                             offset: const Offset(0, 2),
                           ),
                         ],
@@ -123,13 +123,13 @@ class ProfileScreen extends StatelessWidget {
                 colorScheme.primaryContainer,
               ],
             ),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(4),
             boxShadow: [
-              BoxShadow(
-                color: colorScheme.primary.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
+               BoxShadow(
+                 color: colorScheme.primary.withValues(alpha: 0.3),
+                 blurRadius: 0,
+                 offset: const Offset(0, 10),
+               ),
             ],
           ),
           child: Column(
@@ -185,12 +185,12 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
+               Container(
+                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                 decoration: BoxDecoration(
+                   color: Colors.white.withValues(alpha: 0.2),
+                   borderRadius: BorderRadius.circular(4),
+                 ),
                 child: Text(
                   email,
                   style: textTheme.bodySmall?.copyWith(
@@ -218,12 +218,12 @@ class ProfileScreen extends StatelessWidget {
             color: colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(
-                color: colorScheme.shadow.withValues(alpha: 0.05),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
+               BoxShadow(
+                 color: colorScheme.shadow.withValues(alpha: 0.05),
+                 blurRadius: 0,
+                 offset: const Offset(0, 5),
+               ),
+             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,12 +232,12 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [colorScheme.primary, colorScheme.primaryContainer],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                     decoration: BoxDecoration(
+                       gradient: LinearGradient(
+                         colors: [colorScheme.primary, colorScheme.primaryContainer],
+                       ),
+                       borderRadius: BorderRadius.circular(4),
+                     ),
                     child: Icon(
                       Icons.water_drop,
                       color: colorScheme.onPrimary,
@@ -267,7 +267,7 @@ class ProfileScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       '$remaining / $total',
@@ -317,23 +317,15 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildPremiumCard(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF1A237E),
-            const Color(0xFF311B92),
-            const Color(0xFF4A148C),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
+       decoration: BoxDecoration(
+         color: AppTheme.backgroundPureSalt,
+         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF4A148C).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
+           BoxShadow(
+             color: Colors.black.withValues(alpha: 0.3),
+             blurRadius: 0,
+             offset: const Offset(0, 10),
+           ),
         ],
       ),
       child: Row(
@@ -342,7 +334,7 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: const Icon(
               Icons.waves,
@@ -371,23 +363,23 @@ class ProfileScreen extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {},
-                borderRadius: BorderRadius.circular(20),
+           Container(
+             decoration: BoxDecoration(
+               color: colorScheme.surface,
+               borderRadius: BorderRadius.circular(4),
+             ),
+             child: Material(
+               color: Colors.transparent,
+               child: InkWell(
+                 onTap: () {},
+                 borderRadius: BorderRadius.circular(4),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Text(
                     'Upgrade',
                     style: textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF4A148C),
+                   fontWeight: FontWeight.w600,
+                       color: Colors.black,
                     ),
                   ),
                 ),
@@ -403,14 +395,14 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
+         borderRadius: BorderRadius.circular(4),
+         boxShadow: [
+           BoxShadow(
+             color: colorScheme.shadow.withValues(alpha: 0.05),
+             blurRadius: 0,
+             offset: const Offset(0, 5),
+           ),
+         ],
       ),
       child: Column(
         children: [
@@ -469,10 +461,10 @@ class ProfileScreen extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: colorScheme.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
+         decoration: BoxDecoration(
+           color: colorScheme.primary.withValues(alpha: 0.1),
+           borderRadius: BorderRadius.circular(4),
+         ),
         child: Icon(icon, color: colorScheme.primary, size: 22),
       ),
       title: Text(
@@ -498,14 +490,14 @@ class ProfileScreen extends StatelessWidget {
     return ListTile(
       onTap: () => _showSignOutDialog(context, colorScheme, textTheme),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(Icons.logout, color: Colors.red, size: 22),
-      ),
+       leading: Container(
+         padding: const EdgeInsets.all(10),
+         decoration: BoxDecoration(
+           color: Colors.red.withOpacity(0.1),
+           borderRadius: BorderRadius.circular(4),
+         ),
+         child: const Icon(Icons.logout, color: Colors.red, size: 22),
+       ),
       title: Text(
         'Sign Out',
         style: textTheme.titleSmall?.copyWith(
@@ -531,8 +523,8 @@ class ProfileScreen extends StatelessWidget {
     
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+       builder: (context) => Dialog(
+         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -567,12 +559,12 @@ class ProfileScreen extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context, false),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                       style: OutlinedButton.styleFrom(
+                         padding: const EdgeInsets.symmetric(vertical: 14),
+                         shape: RoundedRectangleBorder(
+                           borderRadius: BorderRadius.circular(4),
+                         ),
+                       ),
                       child: Text(
                         'Cancel',
                         style: textTheme.labelLarge?.copyWith(
@@ -585,13 +577,13 @@ class ProfileScreen extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                       style: ElevatedButton.styleFrom(
+                         backgroundColor: Colors.red,
+                         padding: const EdgeInsets.symmetric(vertical: 14),
+                         shape: RoundedRectangleBorder(
+                           borderRadius: BorderRadius.circular(4),
+                         ),
+                       ),
                       child: Text(
                         'Sign Out',
                         style: textTheme.labelLarge?.copyWith(

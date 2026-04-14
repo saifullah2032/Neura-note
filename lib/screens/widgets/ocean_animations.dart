@@ -47,9 +47,9 @@ class _OceanBackgroundState extends State<OceanBackground>
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final teal = widget.primaryColor ?? Colors.teal;
+   @override
+   Widget build(BuildContext context) {
+     final teal = widget.primaryColor ?? AppTheme.primarySkyBlue;
     
     return Stack(
       children: [
@@ -211,12 +211,12 @@ class AnimatedWaveContainer extends StatefulWidget {
   final Color waveColor;
   final double height;
   
-  const AnimatedWaveContainer({
-    super.key,
-    required this.child,
-    this.waveColor = Colors.teal,
-    this.height = 100,
-  });
+   const AnimatedWaveContainer({
+     super.key,
+     required this.child,
+     this.waveColor = AppTheme.primarySkyBlue,
+     this.height = 100,
+   });
 
   @override
   State<AnimatedWaveContainer> createState() => _AnimatedWaveContainerState();
@@ -350,9 +350,9 @@ class _PulsingOceanButtonState extends State<PulsingOceanButton>
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final color = widget.color ?? Colors.teal;
+   @override
+   Widget build(BuildContext context) {
+     final color = widget.color ?? AppTheme.primarySkyBlue;
     final glowOpacity = _glowAnimation.value.clamp(0.0, 1.0);
     
     return AnimatedBuilder(
@@ -366,13 +366,13 @@ class _PulsingOceanButtonState extends State<PulsingOceanButton>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: color,
-              boxShadow: [
-                BoxShadow(
-                  color: _colorWithOpacity(color, glowOpacity),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                ),
-              ],
+               boxShadow: [
+                 BoxShadow(
+                   color: _colorWithOpacity(color, glowOpacity),
+                   blurRadius: 0,
+                   spreadRadius: 2,
+                 ),
+               ],
             ),
             child: Material(
               color: Colors.transparent,
@@ -424,10 +424,10 @@ class _CustomBeachWaveState extends State<CustomBeachWave>
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final primaryColor = widget.primaryColor ?? const Color(0xFF006064);
-    final secondaryColor = widget.secondaryColor ?? const Color(0xFF4DB6AC);
+   @override
+   Widget build(BuildContext context) {
+     final primaryColor = widget.primaryColor ?? AppTheme.primarySkyBlue;
+     final secondaryColor = widget.secondaryColor ?? AppTheme.secondarySeafoam;
     
     return SizedBox(
       height: widget.height,
@@ -688,13 +688,13 @@ class OceanGradientBackground extends StatelessWidget {
     this.colors,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final defaultColors = [
-      const Color(0xFFF8F9FA),
-      const Color(0xFFE0F7FA),
-      const Color(0xFFB2EBF2),
-    ];
+   @override
+   Widget build(BuildContext context) {
+     final defaultColors = [
+       AppTheme.backgroundPureSalt,
+       AppTheme.secondarySeafoam,
+       AppTheme.primarySkyBlue,
+     ];
     
     return Container(
       decoration: BoxDecoration(
@@ -721,15 +721,15 @@ class CoralReefEffect extends StatefulWidget {
   final bool showLeft;
   final bool showRight;
 
-  const CoralReefEffect({
-    super.key,
-    this.child,
-    this.primaryColor = const Color(0xFF385A7C),
-    this.secondaryColor = const Color(0xFF8AD6CC),
-    this.height = 200,
-    this.showLeft = true,
-    this.showRight = true,
-  });
+   const CoralReefEffect({
+     super.key,
+     this.child,
+     this.primaryColor = AppTheme.primarySkyBlue,
+     this.secondaryColor = AppTheme.secondarySeafoam,
+     this.height = 200,
+     this.showLeft = true,
+     this.showRight = true,
+   });
 
   @override
   State<CoralReefEffect> createState() => _CoralReefEffectState();
@@ -900,12 +900,12 @@ class UnderwaterCurrentBackground extends StatefulWidget {
   final Color primaryColor;
   final Color accentColor;
 
-  const UnderwaterCurrentBackground({
-    super.key,
-    required this.child,
-    this.primaryColor = const Color(0xFF385A7C),
-    this.accentColor = const Color(0xFF8AD6CC),
-  });
+   const UnderwaterCurrentBackground({
+     super.key,
+     required this.child,
+     this.primaryColor = AppTheme.primarySkyBlue,
+     this.accentColor = AppTheme.secondarySeafoam,
+   });
 
   @override
   State<UnderwaterCurrentBackground> createState() => _UnderwaterCurrentBackgroundState();

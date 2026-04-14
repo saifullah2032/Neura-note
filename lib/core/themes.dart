@@ -42,6 +42,21 @@ class AppTheme {
   static const Color lightGrey = Color(0xFFEEEEEE);
 
   // ============================================================================
+  // BACKWARDS-COMPATIBLE COLOR ALIASES (for migration from old theme)
+  // ============================================================================
+  static const Color primaryOceanTeal = Color(0xFFC6E7FF); // Sky Blue
+  static const Color primarySteelBlue = Color(0xFFC6E7FF); // Sky Blue
+  static const Color butterSmooth = Color(0xFFD4F6FF); // Seafoam
+  static const Color secondaryMint = Color(0xFFD4F6FF); // Seafoam
+  static const Color textPrimary = Color(0xFF000000); // Black
+  static const Color textSecondary = Color(0xFF333333); // Dark Grey
+  static const Color backgroundBeachSand = Color(0xFFFBFBFB); // Pure Salt
+  static const Color glassSoftTeal = Color(0xFFD4F6FF); // Seafoam
+  static const Color glassLightPeach = Color(0xFFFFDDAE); // Sand Gold
+  static const Color actionCoral = Color(0xFFFFDDAE); // Sand Gold
+  static const Color divider = Color(0xFF000000); // Black
+
+  // ============================================================================
   // ANIMATION CURVES
   // ============================================================================
 

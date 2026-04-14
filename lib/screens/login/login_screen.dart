@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
-      curve: AppTheme.butterSmooth,
+      curve: AppTheme.brutalistSnap,
     );
     _fadeController.forward();
   }
@@ -168,12 +168,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     ),
                                     shape: BoxShape.circle,
                                     boxShadow: [
-                                      BoxShadow(
-                                        color: AppTheme.actionCoral.withValues(alpha: 0.3),
-                                        blurRadius: 16,
-                                        offset: const Offset(0, 8),
-                                      ),
-                                    ],
+                                       BoxShadow(
+                                         color: AppTheme.actionCoral.withValues(alpha: 0.3),
+                                         blurRadius: 0,
+                                         offset: const Offset(0, 8),
+                                       ),
+                                     ],
                                   ),
                                   child: Icon(
                                     Icons.auto_awesome, 
@@ -210,36 +210,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     ),
                                   )
                                 else
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 52,
-                                    child: ElevatedButton(
-                                      onPressed: () => _signInWithGoogle(context),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppTheme.actionCoral,
-                                        foregroundColor: Colors.white,
-                                        elevation: 0,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(Icons.login, size: 20),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'Continue with Google',
-                                            style: TextStyle(
-                                              fontFamily: 'Satoshi',
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                   SinkingButton(
+                                     label: 'Continue with Google',
+                                     onPressed: () => _signInWithGoogle(context),
+                                     backgroundColor: AppTheme.actionCoral,
+                                     textColor: Colors.white,
+                                     width: double.infinity,
+                                     height: 52,
+                                     icon: Icons.login,
+                                   ),
                               ],
                             ),
                           ),

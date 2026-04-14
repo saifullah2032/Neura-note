@@ -126,14 +126,14 @@ class _SummarizeScreenState extends State<SummarizeScreen>
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.primary.withValues(alpha: 0.08),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
+               color: colorScheme.surface,
+                 borderRadius: BorderRadius.circular(4),
+                 boxShadow: [
+                   BoxShadow(
+                     color: colorScheme.primary.withValues(alpha: 0.08),
+                     blurRadius: 0,
+                     offset: const Offset(0, 2),
+                   ),
                 ],
               ),
               child: Icon(Icons.arrow_back, color: colorScheme.primary, size: 22),
@@ -194,9 +194,9 @@ class _SummarizeScreenState extends State<SummarizeScreen>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: colorScheme.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.error.withValues(alpha: 0.3)),
+               color: colorScheme.error.withValues(alpha: 0.1),
+                 borderRadius: BorderRadius.circular(4),
+                 border: Border.all(color: colorScheme.error.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -292,10 +292,10 @@ class _SummarizeScreenState extends State<SummarizeScreen>
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                       decoration: BoxDecoration(
+                         color: colorScheme.primary.withValues(alpha: 0.1),
+                         borderRadius: BorderRadius.circular(4),
+                       ),
                       child: Icon(
                         result.type == SummaryType.image
                             ? Icons.image
@@ -403,11 +403,11 @@ class _SummarizeScreenState extends State<SummarizeScreen>
           const SizedBox(height: 16),
           
           if (result.hasDateTimeEntities) ...[
-            EntitySection(
-              title: 'Dates & Times',
-              icon: Icons.calendar_today,
-              color: Colors.blue,
-              children: result.dateTimes.map((entity) {
+             EntitySection(
+               title: 'Dates & Times',
+               icon: Icons.calendar_today,
+               color: AppTheme.primarySkyBlue,
+               children: result.dateTimes.map((entity) {
                 return EntityChip.dateTime(
                   entity: entity,
                   isSelected: _selectedDateTimeEntity == entity,
@@ -418,12 +418,12 @@ class _SummarizeScreenState extends State<SummarizeScreen>
             if (result.hasLocationEntities) const SizedBox(height: 20),
           ],
           
-          if (result.hasLocationEntities)
-            EntitySection(
-              title: 'Locations',
-              icon: Icons.location_on,
-              color: Colors.orange,
-              children: result.locations.map((entity) {
+           if (result.hasLocationEntities)
+             EntitySection(
+               title: 'Locations',
+               icon: Icons.location_on,
+               color: AppTheme.accentSandGold,
+               children: result.locations.map((entity) {
                 return EntityChip.location(
                   entity: entity,
                   isSelected: _selectedLocationEntity == entity,
@@ -481,14 +481,14 @@ class _SummarizeScreenState extends State<SummarizeScreen>
           onPressed: () => context.pushNamed('reminders'),
           icon: const Icon(Icons.notifications_outlined),
           label: const Text('View Reminders'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: colorScheme.primary,
-            side: BorderSide(color: colorScheme.primary),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
+           style: OutlinedButton.styleFrom(
+             foregroundColor: colorScheme.primary,
+             side: BorderSide(color: colorScheme.primary),
+             padding: const EdgeInsets.symmetric(vertical: 16),
+             shape: RoundedRectangleBorder(
+               borderRadius: BorderRadius.circular(4),
+             ),
+           ),
         ),
       ],
     );
@@ -663,13 +663,13 @@ class _SummarizeScreenState extends State<SummarizeScreen>
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                 decoration: BoxDecoration(
+                   color: AppTheme.primarySkyBlue.withValues(alpha: 0.1),
+                   borderRadius: BorderRadius.circular(4),
+                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today, color: Colors.blue),
+                     const Icon(Icons.calendar_today, color: AppTheme.primarySkyBlue),
                     const SizedBox(width: 8),
                     Text(
                       DateFormat('MMM d, y • h:mm a')
